@@ -10,3 +10,7 @@ std::vector<int> kmp(std::string s) {
     }
     return f;
 }
+
+
+
+114514
