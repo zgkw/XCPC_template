@@ -1,6 +1,7 @@
 /**
- * 多项式扩展包 
+ * 锟斤拷锟斤拷式锟斤拷展锟斤拷 
 */
+//114514
 namespace ExPoly {
     template<int P = ::P, class T1 , class T2>
     constexpr static Poly<P> Lagrange (T1 x, T2 y) {
@@ -38,8 +39,8 @@ namespace ExPoly {
         return f[1];
     }
 /**
- *作用：对多项式进行平移操作
- *时间复杂度O(nlog(n))
+ *锟斤拷锟矫ｏ拷锟皆讹拷锟斤拷式锟斤拷锟斤拷平锟狡诧拷锟斤拷
+ *时锟戒复锟接讹拷O(nlog(n))
  */
     template <int P = ::P>
     constexpr static Poly<P> Polynomial_translation ( Poly<P> f , int k ) {
@@ -59,9 +60,9 @@ namespace ExPoly {
         return here ;
     }
 /**
- *作用：对相同的n对i \in ( 0 , n ) 求出将n个不同的元素划分为i个非空集的方案数
- *第二类Stirling数
- *时间复杂度O(nlog(n))
+ *锟斤拷锟矫ｏ拷锟斤拷锟斤拷同锟斤拷n锟斤拷i \in ( 0 , n ) 锟斤拷锟斤拷锟絥锟斤拷锟斤拷同锟斤拷元锟截伙拷锟斤拷为i锟斤拷锟角空硷拷锟侥凤拷锟斤拷锟斤拷
+ *锟节讹拷锟斤拷Stirling锟斤拷
+ *时锟戒复锟接讹拷O(nlog(n))
  */
     template <int P = ::P>
     constexpr static Poly<P> Second_Stirling_Same_N ( int n ) {
@@ -74,9 +75,9 @@ namespace ExPoly {
         return f ;
     }
 /**
- *作用：对相同的k对不同n 求出将n个不同的元素划分为k个非空集的方案数
- *第二类Stirling数
- *时间复杂度O(nlog(n))
+ *锟斤拷锟矫ｏ拷锟斤拷锟斤拷同锟斤拷k锟皆诧拷同n 锟斤拷锟斤拷锟絥锟斤拷锟斤拷同锟斤拷元锟截伙拷锟斤拷为k锟斤拷锟角空硷拷锟侥凤拷锟斤拷锟斤拷
+ *锟节讹拷锟斤拷Stirling锟斤拷
+ *时锟戒复锟接讹拷O(nlog(n))
  */
     template <int P = ::P>
     constexpr static Poly<P> Second_Stirling_Same_K ( int Max_n , int k ) {
@@ -90,9 +91,9 @@ namespace ExPoly {
         return f ;
     }
 /**
- *作用：对相同的n对i \in ( 0 , n ) 求出将n个不同的元素划分为i个非空轮换的方案数
- *第一类Stirling数
- *时间复杂度O(nlog(n))
+ *锟斤拷锟矫ｏ拷锟斤拷锟斤拷同锟斤拷n锟斤拷i \in ( 0 , n ) 锟斤拷锟斤拷锟絥锟斤拷锟斤拷同锟斤拷元锟截伙拷锟斤拷为i锟斤拷锟角匡拷锟街伙拷锟侥凤拷锟斤拷锟斤拷
+ *锟斤拷一锟斤拷Stirling锟斤拷
+ *时锟戒复锟接讹拷O(nlog(n))
  */
     template <int P = ::P>
     constexpr static Poly<P> First_Stirling_Same_N ( int n ) {
@@ -106,9 +107,9 @@ namespace ExPoly {
         return f ;
     }
 /**
- *作用：对相同的k对不同n 求出将n个不同的元素划分为k个非轮换的方案数
- *第一类Stirling数
- *时间复杂度O(nlog(n))
+ *锟斤拷锟矫ｏ拷锟斤拷锟斤拷同锟斤拷k锟皆诧拷同n 锟斤拷锟斤拷锟絥锟斤拷锟斤拷同锟斤拷元锟截伙拷锟斤拷为k锟斤拷锟斤拷锟街伙拷锟侥凤拷锟斤拷锟斤拷
+ *锟斤拷一锟斤拷Stirling锟斤拷
+ *时锟戒复锟接讹拷O(nlog(n))
  */
     template <int P = ::P>
     constexpr static Poly<P> First_Stirling_Same_K ( int Max_n , int k ) {
