@@ -17,7 +17,7 @@ struct mod_int {
     constexpr mod_int (long long x):x(norm(x % getMod())){}
     
     constexpr int norm(int x) {
-        if (x > P) x -= P;
+        if (x >= P) x -= P;
         if (x < 0) x += P;
         return x;
     }
@@ -31,11 +31,11 @@ struct mod_int {
         return -x;
     }
     constexpr mod_int& operator+= (mod_int rhs) {
-        x = norm(x + rhs->x);
+        x = norm(x + rhs.x);
         return *this;
     }
     constexpr mod_int& operator-= (mod_int rhs) {
-        x = norm(x - rhs->x);
+        x = norm(x - rhs.x);
         return *this;
     }
     constexpr mod_int& operator*= (mod_int rhs) {
