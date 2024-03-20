@@ -49,3 +49,5 @@ array<int, 2> StringHash<HN>::mod =
 template<>
 array<int, 2> StringHash<HN>::base {13331, 131};
 using Hashing = StringHash<HN>;
+
+//114514
