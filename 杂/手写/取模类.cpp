@@ -30,22 +30,22 @@ struct mod_int {
     constexpr mod_int operator-() {
         return -x;
     }
-    constexpr mod_int& operator+= (mod_int rhs) {
+    constexpr mod_int &operator+= (mod_int rhs) {
         x = norm(x + rhs.x);
         return *this;
     }
-    constexpr mod_int& operator-= (mod_int rhs) {
+    constexpr mod_int &operator-= (mod_int rhs) {
         x = norm(x - rhs.x);
         return *this;
     }
-    constexpr mod_int& operator*= (mod_int rhs) {
+    constexpr mod_int &operator*= (mod_int rhs) {
         x = 1ll * x * rhs.x % getMod();
         return *this;
     }
     constexpr mod_int inv () {
         return power(*this, P - 2);
     }
-    constexpr mod_int& operator/= (mod_int rhs) {
+    constexpr mod_int &operator/= (mod_int rhs) {
         x = 1ll * x * rhs.inv().x % getMod();
         return *this;
     }
@@ -67,13 +67,13 @@ struct mod_int {
     constexpr friend bool operator!= (mod_int lhs, mod_int rhs) {
         return lhs.x != rhs.x;
     }
-    constexpr friend istream& operator>> (istream& flow, mod_int& rhs) {
+    constexpr friend istream &operator>> (istream& flow, mod_int& rhs) {
         long long x;
         flow >> x;
         rhs = x;
         return flow;
     }
-    constexpr friend ostream& operator<< (ostream& flow, mod_int rhs) {
+    constexpr friend ostream &operator<< (ostream& flow, mod_int rhs) {
         return flow << rhs.x;
     }
 };
