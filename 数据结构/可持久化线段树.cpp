@@ -42,7 +42,8 @@ struct Chair_Tree {
         root.emplace_back(now);
         std::function<void(Node*, Node*, int, int, int, const Info&)> modify = [&] (Node* last, Node* now, int l, int r, int x, const Info &v) -> void {
             if (r - l == 1) {
-                now->val = last->val + v;
+                now->val = last->val;
+                now->val.apply(v);
                 return;
             }
             int m = (l + r) / 2;
@@ -59,6 +60,20 @@ struct Chair_Tree {
         };
         modify(last, now, 0, n, x, v);
     }
+    Info rangeQuery(int time, int x, int y) {
+        Node* now = root[time];
+        std::function<Info(Node*, int, int)> rangeQuery = [&] (Node* now, int l, int r, int x, int y) {
+            if (l >= y || r <= x) {
+                return Info();
+            }
+            if (l >= x && r <= y) {
+                return now->val;
+            }
+            int m = (l + r) / 2;
+            return rangeQuery(now->ch[0], l, m, x, y) + rangeQuery(now->ch[1], m, r, x, y);
+        };
+        return rangeQuery(now, 0, n, x, y);
+    };
     int kth(int l, int r, int k) {
         Node* x = root[l - 1], * y = root[r - 1];
         std::function<int(Node*, Node*, int, int, int)> kth = [&] (Node* x, Node* y, int l, int r, int k) {
@@ -79,7 +94,7 @@ struct Chair_Tree {
         Node* now = root[t];
         std::function<void(Node*, int, int)> show = [&] (Node* now, int l, int r) {
             if (r - l == 1) {
-                cerr << now->val << ' ';
+                now->val.show();
                 return;
             }
             int m = (l + r) / 2;
@@ -89,11 +104,29 @@ struct Chair_Tree {
         show(now, 0, n);
         cerr << endl;
     }
+    int now_time () {
+        return int(root.size()) - 1;
+    }
 };
+
+struct Info {
+    int min;
+    Info(int x) : min(x) {}
+    void apply(const Info &v) {
+        min = v.min;
+    }
+    void show() {
+        cerr << min << ' ';
+    }
+};
+
+Info operator+ (Info lhs, Info rhs) {
+    return std::min(lhs.min, rhs.min);
+}
 
 struct Node {
     array<Node*, 2> ch{};
-    int val;
+    Info val;
 };
 
-using SegmentTree = Chair_Tree<Node, int>;
+using SegmentTree = Chair_Tree<Node, Info>;
