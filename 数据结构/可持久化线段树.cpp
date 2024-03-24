@@ -62,7 +62,7 @@ struct Chair_Tree {
     }
     Info rangeQuery(int time, int x, int y) {
         Node* now = root[time];
-        std::function<Info(Node*, int, int)> rangeQuery = [&] (Node* now, int l, int r, int x, int y) {
+        std::function<Info(Node*, int, int, int, int)> rangeQuery = [&] (Node* now, int l, int r, int x, int y) {
             if (l >= y || r <= x) {
                 return Info();
             }
@@ -110,21 +110,21 @@ struct Chair_Tree {
 };
 
 struct Info {
-    int x;
-    Info(int x = 0) : x(x) {}
+    ll x;
+    Info(ll x = ll(1e15)) : x(x) {}
     void apply(const Info &v) {
-        x += v.x;
+        x = v.x;
     }
     void show() {
         cerr << x << ' ';
     }
-    operator int() {
+    operator i64() {
         return x;
     }
 };
 
 Info operator+ (Info lhs, Info rhs) {
-    return lhs.x + rhs.x;
+    return std::min(lhs.x, rhs.x);
 }
 Info operator- (Info lhs, Info rhs) {
     return lhs.x - rhs.x;
