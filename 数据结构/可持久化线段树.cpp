@@ -110,18 +110,24 @@ struct Chair_Tree {
 };
 
 struct Info {
-    int min;
-    Info(int x) : min(x) {}
+    int x;
+    Info(int x = 0) : x(x) {}
     void apply(const Info &v) {
-        min = v.min;
+        x += v.x;
     }
     void show() {
-        cerr << min << ' ';
+        cerr << x << ' ';
+    }
+    operator int() {
+        return x;
     }
 };
 
 Info operator+ (Info lhs, Info rhs) {
-    return std::min(lhs.min, rhs.min);
+    return lhs.x + rhs.x;
+}
+Info operator- (Info lhs, Info rhs) {
+    return lhs.x - rhs.x;
 }
 
 struct Node {
