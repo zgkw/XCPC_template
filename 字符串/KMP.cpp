@@ -4,12 +4,12 @@ struct KMP{
     std::vector<vector<int>> aut;
 
     KMP(const std::string &s) {
+    	n = (int)s.length();
         prefix_function(s);
         compute_automaton(s);
     }
 
     void prefix_function(string s) {
-        int n = (int)s.length();
         pi.resize(n);
         for (int i = 1; i < n; i++) {
             int j = pi[i - 1];
@@ -20,7 +20,6 @@ struct KMP{
     }
  
     void compute_automaton(string s) {
-        int n = s.size();
         aut.resize(n, vector<int>(26));
         for (int i = 0; i < n; i++) {
             for (int c = 0; c < 26; c++) {
