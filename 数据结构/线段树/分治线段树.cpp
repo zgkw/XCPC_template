@@ -16,17 +16,21 @@ struct SegmentTree {
     template<class T>
     void init(std::vector<T> init_) {
         n = init_.size();
-        info.assign(4 << std::__lg(n), Info());
+        info.assign(8 << std::__lg(n), Info());
         std::function<void(int, int, int)> build = [&](int p, int l, int r) {
             if (r - l == 1) {
-                info[p] = init_[l];
+                info[p].apply(init_[l]);
                 return;
             }
             int m = (l + r) / 2;
             build(2 * p, l, m);
             build(2 * p + 1, m, r);
+            pull(p);
         };
         build(1, 0, n);
+    }
+    void pull(int p) {
+        info[p].apply(info[p << 1] + info[p << 1 | 1]);
     }
     void rangeChange(int x, int y, const Info &tag) {
         std::function<void(int, int, int, int, int, const Info&)> rangeChange = [&] (int p, int l, int r, int x, int y, const Info &tag) {
@@ -35,11 +39,14 @@ struct SegmentTree {
             }
             if (l >= x && r <= y) {
                 info[p].apply(tag);
+                if (r - l != 1)
+                    pull(p);
                 return;
             }
             int m = (l + r) / 2;
             rangeChange(p << 1, l, m, x, y, tag);
             rangeChange(p << 1 | 1, m, r, x, y, tag);
+            pull(p);
         };
         rangeChange(1, 0, n, x, y, tag);
     }
