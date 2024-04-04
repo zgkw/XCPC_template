@@ -1,8 +1,8 @@
 template<class Tag, class Info>
 struct LazySegmenttree {
     int n;
-    std::vector <Info> tree;
-    std::vector <Tag> lazy;
+    std::vector <Info> info;
+    std::vector <Tag> tag;
 
     LazySegmenttree() : n(0) {}
 
@@ -22,83 +22,87 @@ struct LazySegmenttree {
     template<class T>
     void init(const std::vector <T> &v) {
         n = (int) v.size();
-        tree.assign(4 << std::__lg(n), Info());
-        lazy.assign(4 << std::__lg(n), Tag());
-        auto build = [&](auto &&build, int l, int r, int p) -> void {
+        info.assign(4 << std::__lg(n), Info());
+        tag.assign(4 << std::__lg(n), Tag());
+        std::function<void(int, int, int)> 
+        build = [&](int l, int r, int p) {
             if ((r - l) == 1) {
-                tree[p] = v[l];
+                info[p] = v[l];
                 return;
             }
             int mid = (r + l) >> 1;
-            build(build, l, mid, p << 1);
-            build(build, mid, r, p << 1 | 1);
+            build(l, mid, p << 1);
+            build(mid, r, p << 1 | 1);
             pull(p);
         };
-        build(build, 0, n, 1);
+        build(0, n, 1);
     }
 
     void apply(int p, const Tag &x) {
-        tree[p].apply(x);
-        lazy[p].apply(x);
+        info[p].apply(x);
+        tag[p].apply(x);
     }
 
     void push(int p) {
-        apply(p << 1, lazy[p]);
-        apply(p << 1 | 1, lazy[p]);
-        lazy[p] = Tag();
+        apply(p << 1, tag[p]);
+        apply(p << 1 | 1, tag[p]);
+        tag[p] = Tag();
     }
 
     void pull(int p) {
-        tree[p] = tree[p << 1] + tree[p << 1 | 1];
+        info[p] = info[p << 1] + info[p << 1 | 1];
     }
 
-    void range_Change(int l, int r, const Tag &info) {
-        auto range_change = [&](auto &&range_change, int l, int r, int ls, int rs, int p, const Tag &info) -> void {
-            if (rs <= l || r <= ls) return;
-            if (ls <= l && r <= rs) {
-                apply(p, info);
+    void range_Change(int x, int y, const Tag &tag) {
+        std::function<void(int, int, int)> 
+        range_Change = [&](int l, int r, int p) {
+            if (y <= l || r <= x) return;
+            if (x <= l && r <= y) {
+                apply(p, tag);
                 return;
             }
             int mid = (l + r) >> 1;
             push(p);
-            range_change(range_change, l, mid, ls, rs, p << 1, info);
-            range_change(range_change, mid, r, ls, rs, p << 1 | 1, info);
+            range_Change(l, mid, p << 1);
+            range_Change(mid, r, p << 1 | 1);
             pull(p);
         };
-        range_change(range_change, 0, n, l, r, 1, info);
+        range_Change(0, n, 1);
     }
 
-    Info range_Query(int l, int r) {
-        auto range_query = [&](auto &&range_query, int l, int r, int ls, int rs, int p) -> Info {
-            if (rs <= l || r <= ls) {
+    Info range_Query(int x, int y) {
+        std::function<Info(int, int, int)> 
+        range_query = [&](int l, int r, int p) {
+            if (y <= l || r <= x) {
                 return Info();
             }
-            if (ls <= l && r <= rs) {
-                return tree[p];
+            if (x <= l && r <= y) {
+                return info[p];
             }
             int mid = (l + r) >> 1;
             push(p);
-            return range_query(range_query, l, mid, ls, rs, p << 1)
-                   + range_query(range_query, mid, r, ls, rs, p << 1 | 1);
+            return range_query(l, mid, p << 1)
+                   + range_query(mid, r, p << 1 | 1);
         };
-        return range_query(range_query, 0, n, l, r, 1);
+        return range_query(0, n, 1);
     }
 
-    void show(int l, int r) {
-        auto show = [&](auto &&show, int l, int r, int ls, int rs, int p) -> void {
-            if (rs <= l || r <= ls) {
+    void show(int x, int y) {
+        std::function<void(int, int, int)> 
+        show = [&](int l, int r, int p) {
+            if (y <= l || r <= x) {
                 return;
             }
             if (r - l == 1) {
-                tree[p].show();
+                info[p].show();
                 return;
             }
             int mid = (l + r) >> 1;
             push(p);
-            show(show, l, mid, ls, rs, p << 1);
-            show(show, mid, r, ls, rs, p << 1 | 1);
+            show(l, mid, p << 1);
+            show(mid, r, p << 1 | 1);
         };
-        show(show, 0, n, l, r, 1);
+        show(0, n, 1);
         cerr << endl;
     }
 
@@ -116,19 +120,19 @@ struct Tag {
 };
 
 struct Info {
-    i64 min = 0;
-
+    i64 val = 0, l = 1;
     void apply(const Tag &x) &{
-        min += x.add;
+        val += x.add * l;
     }
 
     void show() {
-        cerr << min << ' ';
+        cerr << val << ' ';
     }
 };
 
 Info operator+(const Info &a, const Info &b) {
-    return {std::min(a.min, b.min)};
+    return {a.val + b.val, a.l + b.l};
 }
 
-using Segmenttree = LazySegmenttree<Tag, Info>;
+using SegmentTree = 
+    LazySegmenttree<Tag, Info>;
