@@ -23,6 +23,7 @@ struct Li_Chao_SegmentTree {
         line.push_back(Line());
         real = _init;
         sort(real.begin(), real.end());
+        real.erase(std::unique(real.begin(), real.end()), real.end());
         real.push_back(real.back() + 1);
     }
     void rangeChange (int x, int y, Line add) {
