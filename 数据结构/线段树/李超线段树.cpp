@@ -1,43 +1,43 @@
-template<typename T, class Line, class Cmp0, class Cmp1>
+template<typename T, class Line, class Cmp>
 struct Li_Chao_SegmentTree {
     int n;
     std::vector<int> id;
-	std::vector<T> real;
+    std::vector<T> real;
     std::vector<Line> line;
-    Cmp0 cmp0; Cmp1 cmp1;
+    Cmp cmp;
     Li_Chao_SegmentTree() {}
     Li_Chao_SegmentTree(int _n) {
         init(_n);
     }
-	Li_Chao_SegmentTree(const std::vector<T> &_init) {
-		init(_init);
-	}
-    void init(int _n) {
-		std::vector<int> _init(_n);
-		iota(_init.begin(), _init.end(), 0);
-		init(_init);
+    Li_Chao_SegmentTree(const std::vector<T> &_init) {
+        init(_init);
     }
-	void init(const std::vector<T> &_init) {
+    void init(int _n) {
+        std::vector<int> _init(_n);
+        iota(_init.begin(), _init.end(), 0);
+        init(_init);
+    }
+    void init(const std::vector<T> &_init) {
         n = _init.size();
         id.assign(4 << std::__lg(n), 0);
         line.push_back(Line());
-		real = _init;
-		sort(real.begin(), real.end());
-		real.push_back(real.back() + 1);
-	}
+        real = _init;
+        sort(real.begin(), real.end());
+        real.push_back(real.back() + 1);
+    }
     void rangeChange (int x, int y, Line add) {
         int u = line.size();
         line.push_back(add);
         std::function<void(int, int, int, int)>
         range_Change = [&] (int l, int r, int p, int u) {
             int &v = id[p], m = (l + r) / 2;
-            if (cmp0(line, u, v, real[m])) {
+            if (cmp(line, u, v, real[m])) {
                 swap(u, v);
             }
-            if (cmp0(line, u, v, real[l])) {
+            if (cmp(line, u, v, real[l])) {
                 range_Change(l, m, p * 2, u);
             }
-            if (cmp0(line, u, v, real[r - 1])) {
+            if (cmp(line, u, v, real[r - 1])) {
                 range_Change(m, r, p * 2 + 1, u);
             }
         };
@@ -56,9 +56,9 @@ struct Li_Chao_SegmentTree {
         };
         range_find(0, n, 1);
     }
-	void insert(Line add) {
-		rangeChange(real[0], real.back(), add);
-	}
+    void insert(Line add) {
+        rangeChange(real[0], real.back(), add);
+    }
     int Query(int x) {
         std::function<int(int, int, int)>
         Query = [&] (int l, int r, int p) {
@@ -72,13 +72,13 @@ struct Li_Chao_SegmentTree {
             } else {
                 v = Query(m, r, p * 2 + 1);
             }
-            return cmp1(line, u, v, x) ? u : v;
+            return cmp(line, u, v, x) ? u : v;
         };
         return Query(0, n, 1);                              
     }
-	T slope_dp_Query(int x) {
-		return line[Query(x)](x);
-	}
+    T slope_dp_Query(int x) {
+        return line[Query(x)](x);
+    }
 };
 
 template<typename T>
@@ -124,4 +124,4 @@ struct Cmp<double> {
 
 template<typename T, typename T1 = int>
 using SegmentTree = 
-    Li_Chao_SegmentTree<T1, Line<T>, Cmp<T>, Cmp<T>>;
+    Li_Chao_SegmentTree<T1, Line<T>, Cmp<T>>;
