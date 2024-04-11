@@ -1,7 +1,6 @@
 template<class Node, class Info>
 struct Chair_Tree {
     int n;
-    
     std::vector<Node*> root;
     Chair_Tree() : n(0) {}
     Chair_Tree(int n_, Info v_ = Info()) {
@@ -19,7 +18,8 @@ struct Chair_Tree {
         n = init_.size();
         Node* now = new Node;
         root.emplace_back(now);
-        std::function<void(Node*, int, int)> build = [&] (Node* now, int l, int r) {
+        std::function<void(Node*, int, int)> 
+        build = [&] (Node* now, int l, int r) {
             if (r - l == 1) {
                 now->val = init_[l];
                 return;
@@ -36,11 +36,12 @@ struct Chair_Tree {
     void pull(Node* now) {
         now->val = now->ch[0]->val + now->ch[1]->val;
     }
-    void modify(int x, const Info &v) {
-        Node* last = root.back();
+    void modify(int x, const Info &v, int from = -1) {
+        Node* last = (from == -1 ? root.back() : root[from]);
         Node* now = new Node;
         root.emplace_back(now);
-        std::function<void(Node*, Node*, int, int, int, const Info&)> modify = [&] (Node* last, Node* now, int l, int r, int x, const Info &v) -> void {
+        std::function<void(Node*, Node*, int, int)> 
+        modify = [&] (Node* last, Node* now, int l, int r) -> void {
             if (r - l == 1) {
                 now->val = last->val;
                 now->val.apply(v);
@@ -50,49 +51,54 @@ struct Chair_Tree {
             if(x < m) {
                 now->ch[0] = new Node;
                 now->ch[1] = last->ch[1];
-                modify(last->ch[0], now->ch[0], l, m, x, v);
+                modify(last->ch[0], now->ch[0], l, m);
             } else {
                 now->ch[0] = last->ch[0];
                 now->ch[1] = new Node;
-                modify(last->ch[1], now->ch[1], m, r, x, v);
+                modify(last->ch[1], now->ch[1], m, r);
             }
             pull(now);
         };
-        modify(last, now, 0, n, x, v);
+        modify(last, now, 0, n);
     }
-    Info rangeQuery(int time, int x, int y) {
-        Node* now = root[time];
-        std::function<Info(Node*, int, int, int, int)> rangeQuery = [&] (Node* now, int l, int r, int x, int y) {
+    Info rangeQuery(int from, int to, int x, int y) {
+        Node* last = root[from], *now = root[to];
+        std::function<Info(Node*, Node*, int, int)>
+        rangeQuery = [&] (Node* last, Node* now, int l, int r) {
             if (l >= y || r <= x) {
                 return Info();
             }
             if (l >= x && r <= y) {
-                return now->val;
+                return now->val - last->val;
             }
             int m = (l + r) / 2;
-            return rangeQuery(now->ch[0], l, m, x, y) + rangeQuery(now->ch[1], m, r, x, y);
+            return rangeQuery(last->ch[0], now->ch[0], l, m)
+                    + rangeQuery(last->ch[1], now->ch[1], m, r);
         };
-        return rangeQuery(now, 0, n, x, y);
+        return rangeQuery(last, now, 0, n);
     };
-    int kth(int l, int r, int k) {
-        Node* x = root[l - 1], * y = root[r - 1];
-        std::function<int(Node*, Node*, int, int, int)> kth = [&] (Node* x, Node* y, int l, int r, int k) {
+    Info kth(int from, int to, int k) {
+        Node* last = root[from], * now = root[to];
+        std::function<Info(Node*, Node*, int, int, int)> 
+        kth = [&] (Node* last, Node* now, int l, int r, int k) {
             if (r - l == 1) {
-                return l;
+                return Info(l, now->val(k));
             }
             int m = (l + r) / 2;
-            int ls = y->ch[0]->val - x->ch[0]->val;
+            Info ls = now->ch[0]->val - last->ch[0]->val;
             if (k <= ls) {
-                return kth(x->ch[0], y->ch[0], l, m, k);
+                return kth(last->ch[0], now->ch[0], l, m, k);
             } else {
-                return kth(x->ch[1], y->ch[1], m, r, k - ls);
+                return kth_merge(now->ch[0]->val - last->ch[0]->val, 
+                        kth(last->ch[1], now->ch[1], m, r, k - int(ls)));
             }
         };
-        return kth(x, y, 0, n, k);
+        return kth(last, now, 0, n, k);
     }
     void show(int t) {
         Node* now = root[t];
-        std::function<void(Node*, int, int)> show = [&] (Node* now, int l, int r) {
+        std::function<void(Node*, int, int)> 
+        show = [&] (Node* now, int l, int r) {
             if (r - l == 1) {
                 now->val.show();
                 return;
@@ -110,24 +116,33 @@ struct Chair_Tree {
 };
 
 struct Info {
-    ll x;
-    Info(ll x = ll(1e15)) : x(x) {}
+    i64 cnt;
+    i64 sum;
+    i64 real;
+    Info(i64 cnt = 0, i64 sum = 0) : cnt(cnt), sum(sum) {}
     void apply(const Info &v) {
-        x = v.x;
+        cnt += v.cnt;
+        sum += 1ll * v.cnt * real;
     }
     void show() {
-        cerr << x << ' ';
+        debug(cnt, sum, real);
     }
-    operator i64() {
-        return x;
+    operator int() {
+        return cnt;
+    }
+    i64 operator() (int k) {
+        return 1ll * k * real;
+    }
+    friend Info kth_merge(Info lhs, Info rhs) {
+        return Info(rhs.cnt, lhs.sum + rhs.sum);
     }
 };
 
 Info operator+ (Info lhs, Info rhs) {
-    return std::min(lhs.x, rhs.x);
+    return Info(lhs.cnt + rhs.cnt, lhs.sum + rhs.sum);
 }
 Info operator- (Info lhs, Info rhs) {
-    return lhs.x - rhs.x;
+    return Info(lhs.cnt - rhs.cnt, lhs.sum - rhs.sum);
 }
 
 struct Node {
