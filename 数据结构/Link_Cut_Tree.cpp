@@ -3,7 +3,7 @@ struct Link_Cut_Tree {
 # define fa(x) tr[x].p
 # define lc(x) tr[x].s[0]
 # define rc(x) tr[x].s[1]
-# define notroot(x) lc ( fa ( x ) ) == x || rc ( fa ( x ) ) == x
+# define notroot(x) lc (fa(x)) == x || rc(fa(x)) == x
     using i64 = int64_t;
     struct node {
         T s[2], p, v, sum;
