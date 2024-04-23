@@ -1,111 +1,125 @@
-template<typename T>
+template<class Info>
 struct Link_Cut_Tree {
-# define fa(x) tr[x].p
-# define lc(x) tr[x].s[0]
-# define rc(x) tr[x].s[1]
-# define notroot(x) lc (fa(x)) == x || rc(fa(x)) == x
     struct node {
-        T s[2], p, v, sum;
-        int tag;
+        int s[2], p, tag;
+        Info m_val;
     };
     int n;
-    vector <node> tree;
-    vector <node> &tr = tree;
+    vector<node> tree;
 
-    Link_Cut_Tree<T>(int n) : n(n) { tree.resize(n + 1); }
+    int &_fa(int x) { return tree[x].p; }
+    int &_lc(int x) { return tree[x].s[0]; }
+    int &_rc(int x) { return tree[x].s[1]; }
+    bool _notroot(int x) {
+        return _lc(_fa(x)) == x || _rc(_fa(x)) == x;
+    }
+    // 不能以0开头
+    Link_Cut_Tree(int n) : n(n) { tree.resize(n + 1); }
 
-    void pushup(int x) {
-        tr[x].sum = tr[lc(x)].sum +
-                    tr[x].v + tr[rc(x)].sum;
+    void _pull(int x) {
+        tree[x].m_val.update(tree[_lc(x)].m_val, tree[_rc(x)].m_val);
     }
 
-    void pushdown(int x) {
-        if (tr[x].tag) {
-            swap(lc(x), rc(x));
-            tr[rc(x)].tag ^= 1;
-            tr[lc(x)].tag ^= 1;
-            tr[x].tag = 0;
+    void _push(int x) {
+        if (tree[x].tag) {
+            swap(_lc(x), _rc(x));
+            tree[_rc(x)].tag ^= 1;
+            tree[_lc(x)].tag ^= 1;
+            tree[x].tag = 0;
         }
     }
 
-    void pushall(int x) {
-        if (notroot(x)) pushall(fa(x));
-        pushdown(x);
+    void _maintain(int x) {
+        if (_notroot(x)) _maintain(_fa(x));
+        _push(x);
     }
 
-    void rotate(int x) {
-        int y = fa(x), z = fa(y);
-        int k = rc(y) == x;
-        if (notroot(y))
-            tr[z].s[rc(z) == y] = x;
-        fa(x) = z;
-        tr[y].s[k] = tr[x].s[k ^ 1];
-        fa(tr[x].s[k ^ 1]) = y;
-        tr[x].s[k ^ 1] = y;
-        fa(y) = x;
-        pushup(y);
-        pushup(x);
+    void _rotate(int x) {
+        int y = _fa(x), z = _fa(y);
+        int k = _rc(y) == x;
+        if (_notroot(y))
+            tree[z].s[_rc(z) == y] = x;
+        _fa(x) = z;
+        tree[y].s[k] = tree[x].s[k ^ 1];
+        _fa(tree[x].s[k ^ 1]) = y;
+        tree[x].s[k ^ 1] = y;
+        _fa(y) = x;
+        _pull(y), _pull(x);
     }
 
-    void splay(int x) {
-        pushall(x);
-        while (notroot(x)) {
-            int y = fa(x), z = fa(y);
-            if (notroot(y))
-                ((rc(z) == y) ^ (rc(y) == x))
-                ? rotate(x) : rotate(y);
-            rotate(x);
+    void _splay(int x) {
+        _maintain(x);
+        while (_notroot(x)) {
+            int y = _fa(x), z = _fa(y);
+            if (_notroot(y))
+                ((_rc(z) == y) ^ (_rc(y) == x))
+                ? _rotate(x) : _rotate(y);
+            _rotate(x);
         }
     }
 
-    void access(int x) {
+    void _access(int x) {
         for (int y = 0; x;) {
-            splay(x);
-            rc(x) = y;
-            pushup(x);
+            _splay(x);
+            _rc(x) = y;
+            _pull(x);
             y = x;
-            x = fa(x);
+            x = _fa(x);
         }
     }
 
-    void makeroot(int x) {
-        access(x);
-        splay(x);
-        tr[x].tag ^= 1;
+    void _makeroot(int x) {
+        _access(x);
+        _splay(x);
+        tree[x].tag ^= 1;
     }
 
-    void split(int x, int y) {
-        makeroot(x);
-        access(y);
-        splay(y);
+    //y变成原树和辅助树的根
+    const Info &split(int x, int y) {
+        _makeroot(x);
+        _access(y);
+        _splay(y);
+        return tree[y].m_val;
     }
 
     int findroot(int x) {
-        access(x);
-        splay(x);
-        while (lc (x))
-            pushdown(x), x = lc(x);
-        splay(x);
+        _access(x);
+        _splay(x);
+        while (_lc (x))
+            _push(x), x = _lc(x);
+        _splay(x);
         return x;
     }
 
     void link(int x, int y) {
-        makeroot(x);
-        if (findroot(y) != x) fa(x) = y;
+        _makeroot(x);
+        if (findroot(y) != x) _fa(x) = y;
     }
 
     void cut(int x, int y) {
-        makeroot(x);
+        _makeroot(x);
         if (findroot(y) == x
-            && fa(y) == x && !lc(y)) {
-            rc(x) = fa(y) = 0;
-            pushup(x);
+            && _fa(y) == x && !_lc(y)) {
+            _rc(x) = _fa(y) = 0;
+            _pull(x);
         }
     }
 
-    void change(int x, int val) {
-        splay(x);
-        tr[x].v = val;
-        pushup(x);
+    void modify(int x, const Info &val) {
+        _splay(x);
+        tree[x].m_val.modify(val);
+        _pull(x);
     }
 };
+
+struct Info {
+    int v = 0; int sum = 0;
+    void modify(const Info& rhs) {
+        v = rhs.v;
+    }
+    void update(const Info &lhs, const Info &rhs) {
+        sum = lhs.sum ^ v ^ rhs.sum;
+    }
+};
+
+using Tree = Link_Cut_Tree<Info>;
