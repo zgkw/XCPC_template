@@ -110,15 +110,19 @@ struct Link_Cut_Tree {
         tree[x].m_val.modify(val);
         _pull(x);
     }
+    node &operator[](int x) {
+        return tree[x];
+    }
 };
 
 struct Info {
-    int v = 0; int sum = 0;
+    int v = 1; int id = -1; int sum = 0; int max = 0;
     void modify(const Info& rhs) {
         v = rhs.v;
     }
     void update(const Info &lhs, const Info &rhs) {
-        sum = lhs.sum ^ v ^ rhs.sum;
+        sum = lhs.sum + v + rhs.sum;
+        max = std::max({lhs.max, id, rhs.max});
     }
 };
 
