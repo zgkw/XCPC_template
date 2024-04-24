@@ -1,20 +1,9 @@
-# include <bits/stdc++.h>
-using namespace std;
-# ifdef LOCAL
-    # include "C:\Users\Kevin\Desktop\demo\save\debug.h"
-# else
-# define debug(...) 114514
-# define ps 114514
-# endif
-
-using ll = long long;
-using i64 = long long;
-
-template<class Info>
-struct LinkCutTree {
+template<class Info, class Tag>
+struct LazyLinkCutTree {
     struct node {
         int s[2], p, tag;
         Info mval;
+        Tag mtag;
     };
     int n;
     vector<node> tree;
@@ -26,11 +15,22 @@ struct LinkCutTree {
         return lc(fa(x)) == x || rc(fa(x)) == x;
     }
     // 不能以0开头
-    LinkCutTree(int n) : n(n) { tree.resize(n + 1); tree[0].mval.defaultclear(); }
+    LazyLinkCutTree(int n) : n(n) { 
+        tree.resize(n + 1); 
+        tree[0].mtag.default_clear();
+        tree[0].mval.default_clear();
+    }
 
 private:
     void pull(int x) {
         tree[x].mval.update(tree[lc(x)].mval, tree[rc(x)].mval);
+    }
+
+    void apply(int x, const Tag &rhs) {
+        if (x) {
+            tree[x].mval.apply(rhs);
+            tree[x].mtag.apply(rhs);
+        }
     }
 
     void push(int x) {
@@ -39,6 +39,11 @@ private:
             tree[rc(x)].tag ^= 1;
             tree[lc(x)].tag ^= 1;
             tree[x].tag = 0;
+        }
+        if (bool(tree[x].mtag)) {
+            apply(lc(x), tree[x].mtag);
+            apply(rc(x), tree[x].mtag);
+            tree[x].mtag.clear();
         }
     }
 
@@ -125,34 +130,57 @@ public:
         pull(x);
     }
 
+    void linemodify(int u, int v, const Tag &rhs) {
+        split(u, v);
+        apply(v, rhs);
+    }
+    
     bool same(int x, int y) {
         makeroot(x);
         return findroot(y) == x;
     }
+
     node &operator[](int x) {
         return tree[x];
     }
 };
 
+struct Tag {
+    int mul = 1, add = 0;
+    void apply(const Tag &rhs) {
+        mul *= rhs.mul;
+        add *= rhs.mul;
+        add += rhs.add;
+    }
+    void clear() {
+        mul = 1;
+        add = 0;
+    }
+    operator bool() {
+        return mul != 1 || add != 0;
+    }
+    void defaultclear() {}
+};
+
+
 struct Info {
-    int v = 1; int id = -1; int sum = 0; int max = 0;
+    int v = 1; int sz = 1; int sum = 0;
     void modify(const Info& rhs) {
         v = rhs.v;
     }
     void update(const Info &lhs, const Info &rhs) {
         sum = lhs.sum + v + rhs.sum;
-        max = std::max({lhs.max, id, rhs.max});
+        sz = lhs.sz + 1 + rhs.sz;
+    }
+    void apply(const Tag &rhs) {
+        v *= rhs.mul;
+        v += rhs.add;
+        sum *= rhs.mul;
+        sum += rhs.add * sz;
     }
     void defaultclear() {
-        v = 0;
+        v = 0, sz = 0, sum = 0;
     }
 };
 
-using Tree = LinkCutTree<Info>;
-
-void solve() {
-}
-
-signed main () {
-    return 0 ;
-}
+using Tree = LazyLinkCutTree<Info, Tag>;
