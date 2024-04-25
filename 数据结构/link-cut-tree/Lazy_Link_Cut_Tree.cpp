@@ -23,7 +23,6 @@ struct LazyLinkCutTree {
 
 private:
     void pull(int x) {
-        push(rc(x)), push(lc(x));
         tree[x].mval.update(tree[lc(x)].mval, tree[rc(x)].mval);
     }
 
@@ -65,7 +64,7 @@ private:
         fa(tree[x].s[k ^ 1]) = y;
         tree[x].s[k ^ 1] = y;
         fa(y) = x;
-        pull(y), pull(x);
+        pull(y);
     }
 
 public:
@@ -78,6 +77,7 @@ public:
                 ? rotate(x) : rotate(y);
             rotate(x);
         }
+        pull(x);
     }
 
     void access(int x) {
