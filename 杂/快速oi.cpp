@@ -1,7 +1,7 @@
-struct Fastin {
+struct Input {
     using Long = long long ;
-    # define cin in 
-    Fastin () {}
+    # define cin input
+    Input () {}
     # define MAXSIZE (1 << 20)
     # define isdigit(x) (x >= '0' && x <= '9')
 
@@ -16,7 +16,7 @@ struct Fastin {
             || ch == '\r' || ch == '\t' || ch == EOF;
     }
     template <typename T>
-    Fastin& operator>> (T&x) {
+    Input &operator>> (T &x) {
         x = 0 ;
         bool sign = 0;
         char ch = gc();
@@ -27,12 +27,12 @@ struct Fastin {
         if (sign)x = -x;
         return *this ;
     }
-    Fastin& operator>> (char&x) {
+    Input &operator>> (char &x) {
         x = ' ';
         for (; blank(x); x = gc ()) ;
         return *this ;
     }
-    Fastin& operator>> (double&x) {
+    Input &operator>> (double &x) {
         x = 0 ;
         double tmp = 1;
         bool sign = 0;
@@ -47,7 +47,7 @@ struct Fastin {
         if (sign) x = -x;
         return *this ;
     }
-    Fastin& operator>>(string&s) {
+    Input &operator>>(string &s) {
         s.clear() ;
         char ch = gc();
         for (; blank(ch); ch = gc());
@@ -56,14 +56,14 @@ struct Fastin {
         }
         return *this ;
     }
-}in;
+}input;
 struct __setprecision {
     int precision ;
 };
 __setprecision setprecision (int x) { return __setprecision {x};}
-struct Fastout {
+struct Output {
 # define MAXSIZE (1 << 20)
-# define cout out 
+# define cout output
 char pbuf[MAXSIZE], *pp = pbuf ;
     void push(const char &c) {
         // putchar (c);
@@ -72,10 +72,10 @@ char pbuf[MAXSIZE], *pp = pbuf ;
         *pp++ = c;
     }
     int precision ;
-    Fastout () { precision = 6 ;}
-    ~Fastout () { fwrite(pbuf, 1, pp - pbuf, stdout);}
+    Output () { precision = 6 ;}
+    ~Output () { fwrite(pbuf, 1, pp - pbuf, stdout);}
     template<class T>
-    Fastout& operator<< (const T& x) {
+    Output &operator<< (const T &x) {
         char stack[35]; int top = 0 ;
         T tmp = x ;
         bool _ = tmp < 0 ;
@@ -86,24 +86,24 @@ char pbuf[MAXSIZE], *pp = pbuf ;
         if (x == 0)push ('0');
         return *this ;
     }
-    Fastout& operator<< (const string& x) {
+    Output &operator<< (const string &x) {
         for (auto&u : x) push (u);
         return *this;
     }
     template<size_t N>
-    Fastout& operator<< (const char(&x)[N]) {
+    Output &operator<< (const char(&x)[N]) {
         *this << string (x) ;
         return *this;
     }
-    Fastout& operator<< (const char& x) {
+    Output &operator<< (const char &x) {
         push (x);
         return *this;
     }
-    Fastout& operator<< (const bool& x) {
+    Output &operator<< (const bool &x) {
         push (x ? '1' : '0');
         return *this;
     }
-    Fastout& operator<<(const double& x) {
+    Output &operator<<(const double &x) {
         int intPart = static_cast<int>(x);
         *this << intPart; // Output the integer part
 
@@ -118,8 +118,8 @@ char pbuf[MAXSIZE], *pp = pbuf ;
         }
         return *this;
     }
-    Fastout& operator<< (const __setprecision& x) {
+    Output &operator<< (const __setprecision &x) {
         precision = x.precision ;
         return *this ;
     }
-}out;
+}output;

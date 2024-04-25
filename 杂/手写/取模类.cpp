@@ -12,7 +12,7 @@ constexpr T power(T x, long long b) {
 template<int P>
 struct mod_int {
     int x;
-    constexpr static int mod{0};
+    static int mod;
     constexpr mod_int() : x{} {}
     constexpr mod_int(long long x) : x(norm(x % getMod())) {}
 
@@ -84,6 +84,9 @@ struct mod_int {
         return flow << rhs.x;
     }
 };
+
+template<>
+int mod_int<0>::mod = 998244353;
 
 template<int P, int x>
 constexpr mod_int<P> invx = mod_int<P>(x).inv();

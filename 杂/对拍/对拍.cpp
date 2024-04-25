@@ -3,13 +3,13 @@
 #include <windows.h>
 #include <cstdlib>
 #include <ctime>
+
 using namespace std;
-int main()
-{
+
+int main() {
     int ok = 0;
     int n = 50;
-    for (int i = 1;; ++i) 
-    {
+    for (int i = 1;; ++i) {
         system("data.exe > in.txt");
         system("std.exe < in.txt > std.txt");
         double begin = clock();
@@ -17,17 +17,12 @@ int main()
         double end = clock();
 
         double t = (end - begin);
-        if (system("fc std.txt baoli.txt"))
-        {
+        if (system("fc std.txt baoli.txt")) {
             printf("测试点#%d Wrong Answer\n", i);
             system("pause");
-        }
-        else if (t > 2000) //1秒
-        {
+        } else if (t > 2000) {
             printf("测试点#%d Time Limited Exceeded 用时 %.0lfms\n", i, t);
-        }
-        else
-        {
+        } else {
             printf("测试点#%d Accepted 用时%.0lfms\n", i, t);
             ok++; //AC数量+1
         }

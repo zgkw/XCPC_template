@@ -1,138 +1,158 @@
-template<class Tag, class Info>
-struct LazySegmenttree {
+template<class Info, class Tag>
+struct LazySegmentTree {
     int n;
-    std::vector <Info> info;
-    std::vector <Tag> tag;
-
-    LazySegmenttree() : n(0) {}
-
-    LazySegmenttree(const int &n, const Info &x = Info()) {
-        init(n, x);
+    std::vector<Info> info;
+    std::vector<Tag> tag;
+    LazySegmentTree() : n(0) {}
+    LazySegmentTree(int n_, Info v_ = Info()) {
+        init(n_, v_);
     }
-
     template<class T>
-    LazySegmenttree(const std::vector <T> &v) {
-        init(v);
+    LazySegmentTree(std::vector<T> init_) {
+        init(init_);
     }
-
-    void init(int n, const Info &x = Info()) {
-        init(std::vector<Info>(n, x));
+    void init(int n_, Info v_ = Info()) {
+        init(std::vector(n_, v_));
     }
-
     template<class T>
-    void init(const std::vector <T> &v) {
-        n = (int) v.size();
+    void init(std::vector<T> init_) {
+        n = init_.size();
         info.assign(4 << std::__lg(n), Info());
         tag.assign(4 << std::__lg(n), Tag());
-        std::function<void(int, int, int)> 
-        build = [&](int l, int r, int p) {
-            if ((r - l) == 1) {
-                info[p] = v[l];
+        std::function<void(int, int, int)> build = [&](int p, int l, int r) {
+            if (r - l == 1) {
+                info[p] = init_[l];
                 return;
             }
-            int mid = (r + l) >> 1;
-            build(l, mid, p << 1);
-            build(mid, r, p << 1 | 1);
+            int m = (l + r) / 2;
+            build(2 * p, l, m);
+            build(2 * p + 1, m, r);
             pull(p);
         };
-        build(0, n, 1);
+        build(1, 0, n);
     }
-
-    void apply(int p, const Tag &x) {
-        info[p].apply(x);
-        tag[p].apply(x);
+    void pull(int p) {
+        info[p] = info[2 * p] + info[2 * p + 1];
     }
-
+    void apply(int p, const Tag &v) {
+        info[p].apply(v);
+        tag[p].apply(v);
+    }
     void push(int p) {
-        apply(p << 1, tag[p]);
-        apply(p << 1 | 1, tag[p]);
+        apply(2 * p, tag[p]);
+        apply(2 * p + 1, tag[p]);
         tag[p] = Tag();
     }
-
-    void pull(int p) {
-        info[p] = info[p << 1] + info[p << 1 | 1];
+    void modify(int p, int l, int r, int x, const Info &v) {
+        if (r - l == 1) {
+            info[p] = v;
+            return;
+        }
+        int m = (l + r) / 2;
+        push(p);
+        if (x < m) {
+            modify(2 * p, l, m, x, v);
+        } else {
+            modify(2 * p + 1, m, r, x, v);
+        }
+        pull(p);
     }
-
-    void range_Change(int x, int y, const Tag &tag) {
-        std::function<void(int, int, int)> 
-        range_Change = [&](int l, int r, int p) {
-            if (y <= l || r <= x) return;
-            if (x <= l && r <= y) {
-                apply(p, tag);
-                return;
-            }
-            int mid = (l + r) >> 1;
-            push(p);
-            range_Change(l, mid, p << 1);
-            range_Change(mid, r, p << 1 | 1);
-            pull(p);
-        };
-        range_Change(0, n, 1);
+    void modify(int p, const Info &v) {
+        modify(1, 0, n, p, v);
     }
-
-    Info range_Query(int x, int y) {
-        std::function<Info(int, int, int)> 
-        range_query = [&](int l, int r, int p) {
-            if (y <= l || r <= x) {
-                return Info();
-            }
-            if (x <= l && r <= y) {
-                return info[p];
-            }
-            int mid = (l + r) >> 1;
-            push(p);
-            return range_query(l, mid, p << 1)
-                   + range_query(mid, r, p << 1 | 1);
-        };
-        return range_query(0, n, 1);
+    Info rangeQuery(int p, int l, int r, int x, int y) {
+        if (l >= y || r <= x) {
+            return Info();
+        }
+        if (l >= x && r <= y) {
+            return info[p];
+        }
+        int m = (l + r) / 2;
+        push(p);
+        return rangeQuery(2 * p, l, m, x, y) + rangeQuery(2 * p + 1, m, r, x, y);
     }
-
-    void show(int x, int y) {
-        std::function<void(int, int, int)> 
-        show = [&](int l, int r, int p) {
-            if (y <= l || r <= x) {
-                return;
-            }
-            if (r - l == 1) {
-                info[p].show();
-                return;
-            }
-            int mid = (l + r) >> 1;
-            push(p);
-            show(l, mid, p << 1);
-            show(mid, r, p << 1 | 1);
-        };
-        show(0, n, 1);
-        cerr << endl;
+    Info rangeQuery(int l, int r) {
+        return rangeQuery(1, 0, n, l, r);
     }
-
-    void show() {
-        show(0, n);
+    void rangeApply(int p, int l, int r, int x, int y, const Tag &v) {
+        if (l >= y || r <= x) {
+            return;
+        }
+        if (l >= x && r <= y) {
+            apply(p, v);
+            return;
+        }
+        int m = (l + r) / 2;
+        push(p);
+        rangeApply(2 * p, l, m, x, y, v);
+        rangeApply(2 * p + 1, m, r, x, y, v);
+        pull(p);
+    }
+    void rangeApply(int l, int r, const Tag &v) {
+        return rangeApply(1, 0, n, l, r, v);
+    }
+    template<class F>
+    int findFirst(int p, int l, int r, int x, int y, F pred) {
+        if (l >= y || r <= x || !pred(info[p])) {
+            return -1;
+        }
+        if (r - l == 1) {
+            return l;
+        }
+        int m = (l + r) / 2;
+        push(p);
+        int res = findFirst(2 * p, l, m, x, y, pred);
+        if (res == -1) {
+            res = findFirst(2 * p + 1, m, r, x, y, pred);
+        }
+        return res;
+    }
+    template<class F>
+    int findFirst(int l, int r, F pred) {
+        return findFirst(1, 0, n, l, r, pred);
+    }
+    template<class F>
+    int findLast(int p, int l, int r, int x, int y, F pred) {
+        if (l >= y || r <= x || !pred(info[p])) {
+            return -1;
+        }
+        if (r - l == 1) {
+            return l;
+        }
+        int m = (l + r) / 2;
+        push(p);
+        int res = findLast(2 * p + 1, m, r, x, y, pred);
+        if (res == -1) {
+            res = findLast(2 * p, l, m, x, y, pred);
+        }
+        return res;
+    }
+    template<class F>
+    int findLast(int l, int r, F pred) {
+        return findLast(1, 0, n, l, r, pred);
     }
 };
 
 struct Tag {
-    i64 add = 0;
-
-    void apply(const Tag &x) &{
-        add += x.add;
+    i64 a = 0, b = 0;
+    void apply(Tag t) {
+        a = std::min(a, b + t.a);
+        b += t.b;
     }
 };
+
+int k;
 
 struct Info {
-    i64 val = 0, l = 1;
-    void apply(const Tag &x) &{
-        val += x.add * l;
-    }
-
-    void show() {
-        cerr << val << ' ';
+    i64 x = 0;
+    void apply(Tag t) {
+        x += t.a;
+        if (x < 0) {
+            x = (x % k + k) % k;
+        }
+        x += t.b - t.a;
     }
 };
-
-Info operator+(const Info &a, const Info &b) {
-    return {a.val + b.val, a.l + b.l};
+Info operator+(Info a, Info b) {
+    return {a.x + b.x};
 }
-
-using SegmentTree = 
-    LazySegmenttree<Tag, Info>;

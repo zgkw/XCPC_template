@@ -516,20 +516,48 @@ namespace Math {
     }
 
     std::vector <i64> math::n_times_remaining(i64 a, i64 b, i64 m) {
-        auto root = min_primitive_root(m);
-        i64 now = math::power(root, a, m);
-        i64 c = math::exBSGS(now, b, m);
-        if (c == -1) return vector<i64>();
-        i64 x0 = math::power(root, c, m);
-        i64 phi = math::Euler_phi(m);
-        i64 gcd = __gcd(a, phi);
-        vector <i64> ans;
-        i64 cnt = math::power(root, phi / gcd, m);
-        for (int i = 0; i < gcd; ++i) {
-            ans.push_back(x0);
-            x0 = math::mul(x0, cnt, m);
+        b %= m;
+        vector<array<i64, 3>> fs;
+        [&] (i64 m) {
+            for (i64 i = 2; i * i <= m; i += 1) {
+                if (m % i == 0) {
+                    array<i64, 3> f{i, 1, 0};
+                    while(m % i == 0) m /= i, f[1] *= i, f[2] += 1;
+                    fs.push_back(f);
+                }
+            }
+            if (m > 1) fs.push_back({m, m, 1});
+        }(m);
+        auto get_Step = [&] (i64 a, i64 n, i64 mod) {//Çó½×
+            i64 ans = n;
+            for (i64 i = 2; i * i <= n; i++)
+                if (n % i == 0) {
+                    while (ans % i == 0 && power(a, ans / i, mod) == 1) ans /= i;
+                    for (; n % i == 0; n /= i);
+                }
+            if (power(a, ans / n, mod) == 1)ans /= n;
+            return ans;
+        };
+
+        i64 ans = 1;
+        auto cntor = [&] (i64 A, i64 B, i64 m, i64 phi) {
+            i64 c = get_Step(B, phi, m), y = phi / c, G = __gcd(A, phi);
+            if (y % G) ans = 0; ans *= G;
+        };
+        for (auto [p, pt, t] : fs) {
+            if (!ans) break;
+            if (b % pt == 0) ans *= power(p, t - (t + a - 1) / a, 1e9);
+            else {
+                i64 Z = 0, b0 = b;
+                for (; b0 % p == 0; Z ++, pt /= p, t--, b0 /= p);
+                if (Z % a) ans = 0;
+                else {
+                    cntor(a, b0, pt, pt - pt / p);
+                    ans *= power(p, Z - Z / a, 1e9);
+                }
+            }
         }
-        return ans;
+        return std::vector<i64>{ans};
     }
 
     i64 math::Exlucas(i64 n, i64 m, i64 P) {
