@@ -1,7 +1,7 @@
 struct Linear_Base {
     int siz;
     vector<int> a;  
-    Linear_Base(int _siz) {
+    Linear_Base(int _siz = 61) {
         siz = _siz;
         a.resize(siz + 1);
     }
