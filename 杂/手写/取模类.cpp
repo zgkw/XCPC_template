@@ -17,8 +17,8 @@ struct mod_int {
     constexpr mod_int(long long x) : x(norm(x % getMod())) {}
 
     constexpr int norm(int x) {
-        if (x >= P) x -= P;
-        if (x < 0) x += P;
+        if (x >= getMod()) x -= getMod();
+        if (x < 0) x += getMod();
         return x;
     }
 
@@ -91,5 +91,5 @@ int mod_int<0>::mod = 998244353;
 template<int P, int x>
 constexpr mod_int<P> invx = mod_int<P>(x).inv();
 
-constexpr int P = 998244353;
+constexpr int P = 0;
 using Z = mod_int<P>;
