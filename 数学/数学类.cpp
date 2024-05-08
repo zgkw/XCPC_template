@@ -126,6 +126,7 @@ namespace Math {
  * 作用：大指数快速幂
  * 时间复杂度：O(sqrt ( m ))
  */
+    
         static i64 Extending_Euler_theorem(i64 a, string b, i64 m);
 
 
