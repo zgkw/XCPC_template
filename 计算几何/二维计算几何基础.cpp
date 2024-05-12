@@ -1,28 +1,17 @@
-#include <bits/stdc++.h>
-
-using namespace std;
-#define IOS ios::sync_with_stdio(false),cin.tie(nullptr),cout.tie(nullptr);
-#define int long long
-
-# ifdef LOCAL
-//# include "C:\Program Files\DEBUG\debug.h"
-# else
-# define debug(...) 114514
-# define pyes 114514
-# endif
-
-
-const double pi = acos(-1);
-
+//#include <bits/stdc++.h>
+//
+//using namespace std;
+//#define IOS ios::sync_with_stdio(false),cin.tie(nullptr),cout.tie(nullptr);
+//#define int long long
+//
+//
 template<class T>
 struct Point {
-    T x, y;
-    static constexpr double eps = 1e-8;
+    T x;
+    T y;
 
     Point(T x_ = 0, T y_ = 0) : x(x_), y(y_) {}
 
-
-    //切换类型
     template<class U>
     operator Point<U>() {
         return Point<U>(U(x), U(y));
@@ -30,7 +19,7 @@ struct Point {
 
     Point &operator+=(Point p) &{
         x += p.x;
-        y += p.x;
+        y += p.y;
         return *this;
     }
 
@@ -43,13 +32,6 @@ struct Point {
     Point &operator*=(T v) &{
         x *= v;
         y *= v;
-        return *this;
-    }
-
-    //除
-    Point &operator/=(T v) &{
-        x /= v;
-        y /= v;
         return *this;
     }
 
@@ -73,18 +55,8 @@ struct Point {
         return b *= a;
     }
 
-    friend Point operator/(Point a, T b) {
-        return a /= b;
-    }
-
     friend bool operator==(Point a, Point b) {
-        if constexpr (std::is_same_v<T, double>) {
-            return fabs(a.x - b.x) < eps && fabs(a.y - b.y) < eps;
-        } else if constexpr (std::is_same_v<T, double>) {
-            return fabs(a.x - b.x) < eps && fabs(a.y - b.y) < eps;
-        } else {
-            return a.x == b.x && a.y == b.y;
-        }
+        return a.x == b.x && a.y == b.y;
     }
 
     friend std::istream &operator>>(std::istream &is, Point &p) {
@@ -95,7 +67,6 @@ struct Point {
         return os << "(" << p.x << ", " << p.y << ")";
     }
 };
-
 
 //点乘
 template<class T>
@@ -110,6 +81,13 @@ T cross(Point<T> a, Point<T> b) {
     return a.x * b.y - a.y * b.x;
 }
 
+//template<class T>
+////ca 与 cb 叉乘
+//T cross(Point<T> a, Point<T> b, Point<T> c) {
+//    Point<T> pa = {b.x - a.x, b.y - a.y};
+//    Point<T> pb = {c.x - a.x, c.y - b.y};
+//    return cross(pa, pb);
+//}
 
 //点到原点距离的平方
 template<class T>
@@ -150,6 +128,25 @@ int sgn(Point<T> a) {
 }
 
 template<class T>
+int Quadrant(Point<T> a) {
+    //象限排序，注意包含四个坐标轴
+    if (a.x > 0 && a.y >= 0) return 1;
+    if (a.x <= 0 && a.y > 0) return 2;
+    if (a.x < 0 && a.y <= 0) return 3;
+    if (a.x >= 0 && a.y < 0) return 4;
+}
+
+//极角序
+template<class T>
+bool cmp(Point<T> a, Point<T> b) {
+    Point<T> c(0, 0);//原点
+    if (cross(c, a, b) == 0)//计算叉积，函数在上面有介绍，如果叉积相等，按照X从小到大排序
+        return a.x < b.x;
+    else return cross(c, a, b) > 0;
+}
+
+
+template<class T>
 struct Line {
     Point<T> a;
     Point<T> b;
@@ -159,9 +156,32 @@ struct Line {
 
 
 template<class T>
+Point<T> getprojection(Line<T> l, Point<T> c) {
+    auto a = l.a;
+    auto b = l.b;
+    if (a == b) {
+        return a;
+    }
+    long double x1 = a.x, x2 = b.x, x0 = c.x, y1 = a.y, y2 = b.y, y0 = c.y;
+    long double k = -((x1 - x0) * (x2 - x1) + (y1 - y0) * (y2 - y1)) / ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+    long double xf = k * (x2 - x1) + x1;
+    long double yf = k * (y2 - y1) + y1;
+    return Point<T>(xf, yf);
+}
+
+template<class T>
+Point<T> getreflection(Line<T> l, Point<T> c) {
+    auto pf = getprojection(l, c);
+    long double xf = pf.x;
+    long double yf = pf.y;
+    return Point<T>(2 * xf - c.x, 2 * yf - c.y);
+}
+
+template<class T>
 Point<T> lineIntersection(Line<T> l1, Line<T> l2) {
     return l1.a + (l1.b - l1.a) * (cross(l2.b - l2.a, l1.a - l2.a) / cross(l2.b - l2.a, l1.a - l1.b));
 }
+
 
 template<class T>
 bool pointOnSegment(Point<T> p, Line<T> l) {
@@ -192,6 +212,7 @@ bool pointInPolygon(Point<T> a, std::vector<Point<T>> p) {
 
     return t == 1;
 }
+
 
 // 0 : not intersect
 // 1 : strictly intersect
@@ -329,6 +350,11 @@ bool segmentInPolygon(Line<T> l, std::vector<Point<T>> p) {
     return true;
 }
 
+
+using Vec = Point<int>; //注意类型
+//using Vec = Point<double>
+
+
 template<class T>
 //半平面交
 std::vector<Point<T>> hp(std::vector<Line<T>> lines) {
@@ -388,9 +414,5 @@ std::vector<Point<T>> hp(std::vector<Line<T>> lines) {
 
     return std::vector(ps.begin(), ps.end());
 }
-
-using Vec = Point<int>; //注意类型
-//using Vec = Point<double>
-
 
 
