@@ -1,129 +1,325 @@
-template < typename T >
-struct Splay {
-	struct node {
-		array < T , 2 > son = { 0 , 0 } ; array < T , 2 >& s = son ;
-		T fa , val , cnt , size ;
-		T& p = fa ,& v = val ;
-		void init ( i64 father , i64 value ) {
-			this->p = father ; this->v = value ; this->cnt = 1 ; }
-	} ;
-	
-	i64 n , root ;
-	vector < node > tree ; vector < node > &tr = tree ;
-    vector < i64 > res ;
+constexpr int max_size = 262144000;
+uint8_t buf[max_size];
+uint8_t *head = buf;
 
-	Splay ( i64 n ): n ( n ) , root ( 0 ) , tree ( n + 3 ) , res ( n + 5 ) 
-         { iota ( res.begin () , res.end () , 0 ) ; insert ( -inf ) ; insert ( inf ) ; }
-    /*作用：维护树形*/
-	void maintain ( i64 x ) {
-		tree [ x ].size = tree [ tree [ x ].son [ 0 ] ].size 
-			+ tree [ tree [ x ].son [ 1 ] ].size + tree [ x ].cnt ;
-	}
-    /*作用：将x向上旋转，
-    **复杂度：常数*/
-	void rotate ( i64 x ) {
-		i64 y = tree [ x ].fa ; i64 z = tree [ y ].fa ;
-		i64 k = tree [ y ].son [ 1 ] == x ;
-		tree [ z ].s [ tree [ z ].s [ 1 ] == y ] = x ;
-		tree [ x ].fa = z ; 
-		tree [ y ].son [ k ] = tree [ x ].son [ k ^ 1 ] ;
-		tree [ tree [ x ].son [ k ^ 1 ] ].fa = y ;
-		tree [ x ].son [ k ^ 1 ] = y ;
-		tree [ y ].fa = x ;
-		maintain ( x ) ; maintain ( y ) ;
-	}
-    /*作用：将x旋转到根节点
-    复杂度：O(logn)*/
-	void splay ( i64 x , i64 k ) {
-		while ( tree [ x ].fa != k ) {
-			i64 y = tree [ x ].fa ; i64 z = tree [ y ].fa ;
-			if ( z != k ) 
-				( tree [ z ].s [ 1 ] == y ) ^ ( tree [ y ].s [ 1 ] == x ) 
-					? rotate ( x ) : rotate ( y ) ;
-			rotate ( x ) ;
-		}
-		if ( k == 0 ) root = x ;
-	}
-    /*作用：查找x,并将与x值最接近的点旋转到根节点
-    复杂度：O(logn)*/
-	bool find ( i64 v ) {
-		i64 x = root ;
-		while ( tree [ x ].s [ v > tree [ x ].v ] && v != tree [ x ].v ) 
-			x = tree [ x ].s [ v > tree [ x ].val ] ;
-		splay ( x , 0 ) ;
-        return tree [ x ].val == v ;
-	}
-    /*作用：将x的前驱到根节点，并返回
-    复杂度：O(logn)*/
-	i64 Precursor ( i64 v ) {
-		find ( v ) ;
-		i64 x = root ;
-		if ( tree [ x ].v < v ) return x ;
-		x = tree [ x ].s [ 0 ] ;
-		while ( tree [ x ].s [ 1 ] ) x = tree [ x ].s [ 1 ] ;
-		splay ( x , 0 ) ;
-		return x ;
-	}
-    /*作用：将x的后继到根节点，并返回
-    复杂度：O(logn)*/
-	i64 Subsequent ( i64 v ) {
-		find ( v ) ;
-		i64 x = root ;
-		if ( tree [ x ].v > v ) return x ;
-		x = tree [ x ].s [ 1 ] ;
-		while ( tree [ x ].s [ 0 ] ) x = tree [ x ].s [ 0 ] ;
-		splay ( x , 0 ) ;
-		return x ;
-	}
-    /*作用：删除x
-    复杂度：O(logn)*/
-	void erase ( i64 v ) {
-		i64 suc = Subsequent ( v ) ;
-		i64 pre = Precursor ( v ) ;
-		splay ( suc , pre ) ;
-		i64 now = tree [ suc ].son [ 0 ] ;
-		if ( tree [ now ].cnt > 1 ) 
-			-- tree [ now ].cnt , splay ( now , 0 ) ;
-		else 
-			tree [ suc ].s [ 0 ] = 0 , splay ( suc , 0 ) , res.push_back ( now ) ;
-	}
-    /*作用：返回x的排名
-    复杂度：O(logn)*/
-	i64 get_rank ( i64 v ) {
-		insert ( v ) ;
-		i64 res = tree [ tree [ root ].s [ 0 ] ].size ;
-		erase ( v ) ;
-		return res ;
-	}
-    /*作用：返回第k大
-    复杂度：O(logn)*/
-	i64 get_val ( i64 k ) {
-		i64 x = root ; ++ k ;
-		while ( true ) {
-			i64 ls = tree [ x ].son [ 0 ] ;
-			if( k <= tree [ ls ].size ) x = ls ;
-			else if ( k <= tree [ ls ].size + tree [ x ].cnt ) break;
-			else k -= tree [ ls ].size + tree [ x ].cnt , x = tree [ x ].son [ 1 ];
-		}
-		splay ( x , 0 ) ;
-		return tree [ x ].v ;
-	}
+using u32 = uint32_t;
 
-	void insert ( i64 v ) {
-		i64 x = root , p = 0 ;
-		while ( x && tree [ x ].v != v )
-			p = x , x = tree [ x ].s [ v > tree [ x ].v ] ;
-		if ( x ) ++ tree [ x ].cnt ;
-		else {
-            assert ( !res.empty () ) ;
-			x = res.back () ; res.pop_back () ;
-			tree [ p ].s [ v > tree [ p ].v ] = x ;
-			tree [ x ].init ( p , v ) ;
-		}
-		splay ( x , 0 ) ;
-	}
-
-    i64 size () { return tree [ root ].size - 2 ;}
-    bool empty () { return tree [ root ].size == 2 ;}
-    ~Splay () {}
+template <class T>
+struct u32_p {
+    u32 x;
+    u32_p(u32 x = 0) : x(x) {}
+    T *operator->() {
+        return (T *)(buf + x);
+    }
+    operator bool() {
+        return x;
+    }
+    operator u32() {
+        return x;
+    }
+    bool operator==(u32_p rhs) const {
+        return x == rhs.x;
+    }
+    static u32_p __new() {
+        // assert(x < max_size);
+        return (head += sizeof(T)) - buf;
+    }
 };
+
+template<class Info, class Tag>
+struct Balance_Tree {
+    struct Tree {
+        Info info;
+        Tag tag;
+        bool rev;
+        using Tp = u32_p<Tree>;
+        Tp ch[2], p;
+    };
+    using Tp = u32_p<Tree>;
+
+    Balance_Tree() {
+        Tp()->info.Null();
+    }
+    Tp __new () {
+        return Tp::__new();
+    }
+
+    Tp build (int l, int r) {
+        if (l > r) return 0;
+        int m = l + r >> 1;
+        Tp p = __new();
+        p->ch[0] = build(l, m - 1);
+        if (p->ch[0]) p->ch[0]->p = p;
+        {
+            // fun
+        }
+        p->ch[1] = build(m + 1, r);
+        if (p->ch[1]) p->ch[1]->p = p;
+        pull(p);
+        return p;
+    }
+    template<typename F>
+    Tp build (int l, int r, F fun) {
+        if (l > r) return 0;
+        int m = l + r >> 1;
+        Tp p = __new();
+        p->ch[0] = build(l, m - 1, fun);
+        if (p->ch[0]) p->ch[0]->p = p;
+        fun(p, m);
+        p->ch[1] = build(m + 1, r, fun);
+        if (p->ch[1]) p->ch[1]->p = p;
+        pull(p);
+        return p;
+    }
+
+    bool pos(Tp t) {
+        return t->p->ch[1] == t;
+    }
+
+    void apply(Tp t, const Tag &v) {
+        if (t) {
+            t->info.apply(v);
+            t->tag.apply(v);
+        }
+    }
+
+    void push(Tp t) {
+        if (t->rev) {
+            t->ch[0]->rev ^= 1;
+            t->ch[1]->rev ^= 1;
+            swap(t->ch[0], t->ch[1]);
+            t->rev = 0;
+        }
+        if (t->tag) {
+            apply(t->ch[0], t->tag);
+            apply(t->ch[1], t->tag);
+            t->tag = Tag();
+        }
+    }
+
+    void pull(Tp t) {
+        t->info.up(t->ch[0]->info, t->ch[1]->info);
+    }
+
+    void rotate(Tp t) {
+        Tp q = t->p;
+        int x = !pos(t);
+        q->ch[!x] = t->ch[x];
+        if (t->ch[x]) t->ch[x]->p = q;
+        t->p = q->p;
+        if (q->p) q->p->ch[pos(q)] = t;
+        t->ch[x] = q;
+        q->p = t;
+        pull(q);
+    }
+
+    void pushall(Tp t) {
+        if (t->p) pushall(t->p);
+        push(t);
+    }
+
+    void splay(Tp t, Tp top = 0) {
+        pushall(t);
+        while (t->p != top) {               
+            if (t->p->p != top)
+                rotate(pos(t) ^ pos(t->p) ? t : t->p);
+            rotate(t);
+        }
+        pull(t);
+    }
+
+    void insert(Tp &t, Tp x) {
+        Tp p = 0;
+        
+        while (t && t->info.x != x->info.x) {
+            push(t);
+            p = t;
+            t = t->ch[x->info.x > t->info.x];
+        }
+
+        if (!t) {
+            t = x;
+            t->p = p;
+            if (p) p->ch[t->info.x > p->info.x] = t;
+        } else {
+            t->info.apply(x->info);
+        }
+        splay(t);
+    }
+
+    Tp rank(Tp &t, int k) {
+        while (true) {
+            push(t);
+            if (k > t->ch[0]->info.sz + t->info.cnt) {
+                k -= t->ch[0]->info.sz + t->info.cnt;
+                t = t->ch[1];
+            } else if (k <= t->ch[0]->info.sz) {
+                t = t->ch[0];
+            } else break;
+        }
+        splay(t);
+        return t;
+    }
+
+    Tp shrink(Tp &t, int l, int r) {
+        if (r == t->info.sz && l == 1) {
+            return t;
+        } else if (r == t->info.sz) {
+            rank(t, l - 1);
+            return t->ch[1];
+        } else if (l == 1) {
+            rank(t, r + 1);
+            return t->ch[0];
+        } else {
+            Tp lhs = rank(t, l - 1);
+            rank(t, r + 1);
+            splay(lhs, t);
+            return lhs->ch[1];
+        }
+    }
+
+    void find(Tp &t, const Info &rhs) {
+        // if (!t) {
+        //     return;
+        // }
+        while (t->info.x != rhs.x && t->ch[rhs.x > t->info.x]) {
+            t = t->ch[rhs.x > t->info.x];
+        }
+        splay(t);
+    }
+
+    Tp prev(Tp &t, const Info &rhs) {
+        find(t, rhs);
+        if (t->info.x >= rhs.x) {
+            t = t->ch[0];
+            while (t->ch[1]) {
+                t = t->ch[1];
+            }
+        }
+        splay(t);
+        return t;
+    }
+
+    Tp next(Tp &t, const Info &rhs) {
+        find(t, rhs);
+        if (rhs.x >= t->info.x) {
+            t = t->ch[1];
+            while (t->ch[0]) {
+                t = t->ch[0];
+            }
+        }
+        splay(t);
+        return t;
+    }
+
+    void erase(Tp &t, const Info &rhs) {
+        find(t, rhs);
+        if (t->info == rhs && t->info.erase()) {
+            Tp lhs = t->ch[0], rhs = t->ch[1];
+            lhs->p = 0, rhs->p = 0;
+            t = merge(lhs, rhs);
+        }
+    }
+
+    void dfs(Tp t, int dep = 0) {
+        if (!t) {
+            return;
+        }
+        push(t);
+        dfs(t->ch[0], dep + 1);
+        cout << t->info.x << ' ';
+        // for (int i = 0; i < dep; i += 1) cerr << '\t';
+        // std::cerr << t->info << "\n";
+        dfs(t->ch[1], dep + 1);
+    }
+
+    std::pair<Tp, Tp> split_by_val(Tp t, int x) {
+        if (!t) {
+            return {t, t};
+        }
+        Tp v = 0;
+        Tp j = t;
+        for (Tp i = t; i; ) {
+            push(i);
+            j = i;
+            if (i->info >= x) {
+                v = i;
+                i = i->ch[0];
+            } else {
+                i = i->ch[1];
+            }
+        }
+        
+        splay(j);
+        if (!v) {
+            return {j, 0};
+        }
+        
+        splay(v);
+        
+        Tp u = v->ch[0];
+        if (u) {
+            v->ch[0] = u->p = 0;
+            pull(v);
+        }
+        return {u, v};
+    }
+
+    std::pair<Tp, Tp> split_by_rank(Tp t, int x) {
+        if (t->info.sz < x) {
+            return {t, 0};
+        }
+
+        rank(t, x);
+        
+        Tp u = t->ch[0];
+        if (u) {
+            t->ch[0] = u->p = 0;
+            pull(t);
+        }
+        return {u, t};
+    }
+
+    Tp merge(Tp l, Tp r) {
+        if (l.x * r.x == 0) {
+            return l.x | r.x;
+        }
+        Tp i = l;
+        push(i);
+        for (; i->ch[1]; i = i->ch[1], push(i));
+        splay(i);
+        i->ch[1] = r;
+        r->p = i;
+        pull(i);
+        return i;
+    }
+};
+
+struct Tag {
+    constexpr operator bool() {
+        return false;
+    }
+    void apply(const Tag &t) {}
+};
+
+struct Info {
+    int x = 0, cnt = 1, sz = 1;
+    void up(const Info &lhs, const Info &rhs) {
+        sz = lhs.sz + cnt + rhs.sz;
+    }
+    bool erase() {
+        return !(-- cnt);
+    }
+    void apply(const Tag &t) {}
+    void apply(const Info &t) {
+        cnt += 1; sz += 1;
+    }
+    friend ostream &operator<<(ostream &cout, Info rhs) {
+        return cout << rhs.x << ' ' << rhs.cnt << ' ' << rhs.sz;
+    }
+    void Null() {}
+};
+
+using BT = Balance_Tree<Info, Tag>;
+using Tp = BT::Tp;
+BT tree;

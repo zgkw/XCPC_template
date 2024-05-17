@@ -25,16 +25,16 @@ struct SegmentTree {
             int m = (l + r) / 2;
             build(2 * p, l, m);
             build(2 * p + 1, m, r);
-            pull(p);
+            pull(p, l, m, r);
         };
         build(1, 0, n);
     }
-    void pull(int p) {
-        info[p] = info[2 * p] + info[2 * p + 1];
+    void pull(int p, int l, int m, int r) {
+        info[p].update(info[2 * p], info[2 * p + 1], l, m, r);
     }
     void modify(int p, int l, int r, int x, const Info &v) {
         if (r - l == 1) {
-            info[p] = v;
+            info[p].apply(v, l, r);
             return;
         }
         int m = (l + r) / 2;
@@ -43,24 +43,44 @@ struct SegmentTree {
         } else {
             modify(2 * p + 1, m, r, x, v);
         }
-        pull(p);
+        pull(p, l, m, r);
     }
     void modify(int p, const Info &v) {
+        if(p >= n) return;
         modify(1, 0, n, p, v);
     }
     Info rangeQuery(int p, int l, int r, int x, int y) {
-        if (l >= y || r <= x) {
-            return Info();
-        }
         if (l >= x && r <= y) {
             return info[p];
         }
         int m = (l + r) / 2;
-        return rangeQuery(2 * p, l, m, x, y) + rangeQuery(2 * p + 1, m, r, x, y);
+        if (m >= y) {
+            return rangeQuery(2 * p, l, m, x, y);
+        } else if (m <= x) {
+            return rangeQuery(2 * p + 1, m, r, x, y);
+        } else {
+            return Info::merge(rangeQuery(2 * p, l, m, x, y), rangeQuery(2 * p + 1, m, r, x, y), std::max(l, x), m, std::min(r, y));
+        }
     }
     Info rangeQuery(int l, int r) {
+        if (l >= r) return Info();
         return rangeQuery(1, 0, n, l, r);
     }
+    // int BS(int p, int l, int r, i64 k) {
+    //     // debug(l, r, k, info[p]);
+    //     if (info[p] < k) return -1;
+    //     if (r - l == 1) return l;
+    //     int m = (l + r) / 2;
+    //     if (info[p * 2].sum >= k) 
+    //         return BS(p * 2, l, m, k);
+    //     else 
+    //         return BS(p * 2 + 1, m, r, k - info[p * 2].sum);
+    // };
+    // int BS(i64 k) {
+    //     // debug(k);
+    //     return BS(1, 0, n, k);
+    // }
+
     template<class F>
     int findFirst(int p, int l, int r, int x, int y, F pred) {
         if (l >= y || r <= x || !pred(info[p])) {
@@ -99,19 +119,35 @@ struct SegmentTree {
     int findLast(int l, int r, F pred) {
         return findLast(1, 0, n, l, r, pred);
     }
+    void show(int p, int l, int r, int x, int y, int dep = 0) {
+        if (l >= y || r <= x) return;
+        int m = (l + r) >> 1;
+        if (r - l > 1)
+        show(p * 2, l, m, x, y, dep + 1);
+        for (int i = 0; i < dep; i += 1) {
+            cerr << '\t';
+        }
+        cerr << l << ' ' << r << ' '; info[p].show();
+        cerr << '\n';
+        if (r - l > 1)
+        show(p * 2 + 1, m, r, x, y, dep + 1);
+    }
+    void show(int l, int r) {
+        show(1, 0, n, l, r);
+    }
 };
 
 struct Info {
-    int x = 0;
-    int cnt = 0;
+    void apply(const Info &rhs, int l, int r) {}
+    void update(const Info &lhs, const Info &rhs, int l, int m, int r) {}
+    static Info merge(const Info &lhs, const Info &rhs, int l, int m, int r) {
+        Info info = Info();
+        info.update(lhs, rhs, l, m, r);
+        return info;
+    }
+    void show() const {
+        cerr << "info: ";
+    }
 };
 
-Info operator+(Info a, Info b) {
-    if (a.x == b.x) {
-        return {a.x, a.cnt + b.cnt};
-    } else if (a.cnt > b.cnt) {
-        return {a.x, a.cnt - b.cnt};
-    } else {
-        return {b.x, b.cnt - a.cnt};
-    }
-}
+using Tree = SegmentTree<Info>;

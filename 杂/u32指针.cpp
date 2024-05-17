@@ -25,13 +25,3 @@ struct u32_p {
         return (head += sizeof(T)) - buf;
     }
 };
-
-constexpr int N = 2e5;
-
-struct node;
-using Trie = u32_p<node>;
-
-struct node {
-    array<Trie, 2> ch{};
-    int x; int sum;
-};
