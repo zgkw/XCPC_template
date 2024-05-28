@@ -28,15 +28,17 @@ struct u32_p {
 
 template<class Info, class Tag>
 struct Balance_Tree {
-    struct Tree {
-        Info info;
-        Tag tag;
-        bool rev;
-        using Tp = u32_p<Tree>;
-        Tp ch[2], p;
-    };
+    struct Tree;
     using Tp = u32_p<Tree>;
+    
+    struct Tree {
+        Tp ch[2], p;
+        Info info;
+        bool rev;
+        Tag tag;
+    };
 
+    // build operator
     Balance_Tree() {
         Tp()->info.Null();
     }
@@ -71,7 +73,9 @@ struct Balance_Tree {
         pull(p);
         return p;
     }
+    // build operator
 
+    // basic operator
     bool pos(Tp t) {
         return t->p->ch[1] == t;
     }
@@ -127,33 +131,17 @@ struct Balance_Tree {
         }
         pull(t);
     }
+    // basic operator
 
-    void insert(Tp &t, Tp x) {
-        Tp p = 0;
-        
-        while (t && t->info.x != x->info.x) {
-            push(t);
-            p = t;
-            t = t->ch[x->info.x > t->info.x];
-        }
-
-        if (!t) {
-            t = x;
-            t->p = p;
-            if (p) p->ch[t->info.x > p->info.x] = t;
-        } else {
-            t->info.apply(x->info);
-        }
-        splay(t);
-    }
-
+    // shrink operator
     Tp rank(Tp &t, int k) {
+        int mid = k;
         while (true) {
             push(t);
-            if (k > t->ch[0]->info.sz + t->info.cnt) {
-                k -= t->ch[0]->info.sz + t->info.cnt;
+            if (k > t->ch[0]->info.siz + t->info.rep_cnt) {
+                k -= t->ch[0]->info.siz + t->info.rep_cnt;
                 t = t->ch[1];
-            } else if (k <= t->ch[0]->info.sz) {
+            } else if (k <= t->ch[0]->info.siz) {
                 t = t->ch[0];
             } else break;
         }
@@ -161,10 +149,52 @@ struct Balance_Tree {
         return t;
     }
 
-    Tp shrink(Tp &t, int l, int r) {
-        if (r == t->info.sz && l == 1) {
+    template<bool isRight>
+    void split_by_range(Tp &t, int k) { // split range, but not really split
+        rank(t, k);
+        if constexpr(!isRight) {
+            if (k > t->info.l) {
+                Tp l = __new();
+                (l->ch[0] = t->ch[0])->p = l;
+                (l->p = t)->ch[0] = l;
+                l->info.init(t->info.l, k - 1, t->info);
+                t->info.init(k, t->info.r, t->info);
+                pull(l), pull(t);
+            }
+        } else {
+            if (k < t->info.r) {
+                Tp r = __new();
+                (r->ch[1] = t->ch[1])->p = r;
+                (r->p = t)->ch[1] = r;
+                r->info.init(k + 1, t->info.r, t->info);
+                t->info.init(t->info.l, k, t->info);
+                pull(r), pull(t);
+            }
+        }
+    }
+
+    Tp shrink_by_split_range(Tp &t, int l, int r) {
+        if (r == t->info.siz && l == 1) {
             return t;
-        } else if (r == t->info.sz) {
+        } else if (r == t->info.siz) {
+            split_by_range<1>(t, l - 1);
+            return t->ch[1];
+        } else if (l == 1) {
+            split_by_range<0>(t, r + 1);
+            return t->ch[0];
+        } else {
+            split_by_range<1>(t, l - 1);
+            Tp lhs = t;
+            split_by_range<0>(t, r + 1);
+            splay(lhs, t);
+            return lhs->ch[1];
+        }
+    }
+
+    Tp shrink(Tp &t, int l, int r) {
+        if (r == t->info.siz && l == 1) {
+            return t;
+        } else if (r == t->info.siz) {
             rank(t, l - 1);
             return t->ch[1];
         } else if (l == 1) {
@@ -178,61 +208,13 @@ struct Balance_Tree {
         }
     }
 
-    void find(Tp &t, const Info &rhs) {
-        // if (!t) {
-        //     return;
-        // }
-        while (t->info.x != rhs.x && t->ch[rhs.x > t->info.x]) {
-            t = t->ch[rhs.x > t->info.x];
-        }
-        splay(t);
+    void pullall(Tp t) {
+        for (t = t->p; t; t = t->p) 
+            pull(t);
     }
+    // shrink operator
 
-    Tp prev(Tp &t, const Info &rhs) {
-        find(t, rhs);
-        if (t->info.x >= rhs.x) {
-            t = t->ch[0];
-            while (t->ch[1]) {
-                t = t->ch[1];
-            }
-        }
-        splay(t);
-        return t;
-    }
-
-    Tp next(Tp &t, const Info &rhs) {
-        find(t, rhs);
-        if (rhs.x >= t->info.x) {
-            t = t->ch[1];
-            while (t->ch[0]) {
-                t = t->ch[0];
-            }
-        }
-        splay(t);
-        return t;
-    }
-
-    void erase(Tp &t, const Info &rhs) {
-        find(t, rhs);
-        if (t->info == rhs && t->info.erase()) {
-            Tp lhs = t->ch[0], rhs = t->ch[1];
-            lhs->p = 0, rhs->p = 0;
-            t = merge(lhs, rhs);
-        }
-    }
-
-    void dfs(Tp t, int dep = 0) {
-        if (!t) {
-            return;
-        }
-        push(t);
-        dfs(t->ch[0], dep + 1);
-        cout << t->info.x << ' ';
-        // for (int i = 0; i < dep; i += 1) cerr << '\t';
-        // std::cerr << t->info << "\n";
-        dfs(t->ch[1], dep + 1);
-    }
-
+    // split and merge
     std::pair<Tp, Tp> split_by_val(Tp t, int x) {
         if (!t) {
             return {t, t};
@@ -266,7 +248,7 @@ struct Balance_Tree {
     }
 
     std::pair<Tp, Tp> split_by_rank(Tp t, int x) {
-        if (t->info.sz < x) {
+        if (t->info.siz < x) {
             return {t, 0};
         }
 
@@ -293,29 +275,118 @@ struct Balance_Tree {
         pull(i);
         return i;
     }
+    // split and merge
+
+    // set operator
+    void insert(Tp &t, Tp x) {
+        Tp p = 0;
+        
+        while (t && t->info.x != x->info.x) {
+            push(t);
+            p = t;
+            t = t->ch[x->info.x > t->info.x];
+        }
+
+        if (!t) {
+            t = x;
+            t->p = p;
+            if (p) p->ch[t->info.x > p->info.x] = t;
+        } else {
+            t->info.apply(x->info);
+        }
+        splay(t);
+    }
+
+    void find(Tp &t, const Info &rhs) {
+        // if (!t) {
+        //     return;
+        // }
+        while (t->info.x != rhs.x && t->ch[rhs.x > t->info.x]) {
+            t = t->ch[rhs.x > t->info.x];
+        }
+        splay(t);
+    }
+
+    Tp prev_by_val(Tp &t, const Info &rhs) {
+        Tp p;
+        while (t) {
+            if (t->info.x >= rhs.x) {
+                t = t->ch[0];
+            } else {
+                p = t;
+                t = t->ch[1];
+            }
+        }
+        splay(t = p);
+        return p;
+    }
+
+    Tp next_by_val(Tp &t, const Info &rhs) {
+        Tp p;
+        while (t) {
+            if (t->info.x <= rhs.x) {
+                t = t->ch[1];
+            } else {
+                p = t;
+                t = t->ch[0];
+            }
+        }
+        splay(t = p);
+        return p;
+    }
+
+    void erase(Tp &t, const Info &rhs) {
+        find(t, rhs);
+        if (t->info == rhs && t->info.erase()) {
+            Tp lhs = t->ch[0], rhs = t->ch[1];
+            lhs->p = 0, rhs->p = 0;
+            t = merge(lhs, rhs);
+        }
+        splay(t);
+    }
+    // set operator
+
+    void dfs(Tp t, int dep = 0) {
+        if (!t) {
+            return;
+        }
+        push(t);
+        dfs(t->ch[0], dep + 1);
+        for (int i = 0; i < dep; i += 1) cerr << '\t';
+        std::cerr << t->info << "\n";
+        dfs(t->ch[1], dep + 1);
+    }
+
 };
 
 struct Tag {
-    constexpr operator bool() {
-        return false;
+    int set = 0;
+    void apply(const Tag &t) {
+        set = t.set;
     }
-    void apply(const Tag &t) {}
+    operator bool() {
+        return set;
+    }
 };
 
 struct Info {
-    int x = 0, cnt = 1, sz = 1;
+    int x = 1, rep_cnt = 1, siz = 1;
+    int l = 0, r = 0;
+    int sum = 0;
     void up(const Info &lhs, const Info &rhs) {
-        sz = lhs.sz + cnt + rhs.sz;
+        siz = lhs.siz + rep_cnt + rhs.siz;
+        sum = lhs.sum + x * rep_cnt + rhs.sum;
     }
-    bool erase() {
-        return !(-- cnt);
+    void apply(const Tag &t) {
+        x = t.set - 1;
+        sum = siz * x;
     }
-    void apply(const Tag &t) {}
-    void apply(const Info &t) {
-        cnt += 1; sz += 1;
-    }
+    void apply(const Info &t) {}
     friend ostream &operator<<(ostream &cout, Info rhs) {
-        return cout << rhs.x << ' ' << rhs.cnt << ' ' << rhs.sz;
+        return cout << rhs.x << ' ' << rhs.rep_cnt << ' ' << rhs.siz << ' ' << rhs.l << ' ' << rhs.r << ' ' << rhs.sum;
+    }
+    void init(int L, int R, Info from) {
+        l = L, r = R; rep_cnt = r - l + 1; x = from.x;
     }
     void Null() {}
 };
