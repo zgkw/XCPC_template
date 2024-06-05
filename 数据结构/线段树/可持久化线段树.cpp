@@ -1,153 +1,165 @@
-template<class Node, class Info>
-struct Chair_Tree {
+constexpr int max_size = 262144000;
+uint8_t buf[max_size];
+uint8_t *head = buf;
+
+using u32 = uint32_t;
+
+template <class T>
+struct u32_p {
+    u32 x;
+    u32_p(u32 x = 0) : x(x) {}
+    T *operator->() {
+        return (T *)(buf + x);
+    }
+    operator bool() {
+        return x;
+    }
+    operator u32() {
+        return x;
+    }
+    bool operator==(u32_p rhs) const {
+        return x == rhs.x;
+    }
+    static u32_p __new() {
+        // assert(x < max_size);
+        return (head += sizeof(T)) - buf;
+    }
+};
+
+template<typename Info>
+struct persistent_segment_tree {
     int n;
-    std::vector<Node*> root;
-    Chair_Tree() : n(0) {}
-    Chair_Tree(int n_, Info v_ = Info()) {
-        init(n_, v_);
+    struct node;
+    using Tp = u32_p<node>;
+    struct node {
+        Info info;
+        Tp ch[2];
+    };
+    Tp _new() {
+        Tp t = Tp::__new();
+        return t;
     }
-    template<class T>
-    Chair_Tree(std::vector<T> init_) {
-        init(init_());
+    vector<Tp> root;
+    persistent_segment_tree(): n(0) {} 
+    persistent_segment_tree(int _n, Info _v = Info()) {
+        init(std::vector(_n, _v));
+    } 
+    template<typename T>
+    persistent_segment_tree(std::vector<T> _init) {
+        _init(_init);
     }
-    void init(int n_, Info v_ = Info()) {
-        init(std::vector(n_, v_));
+    void pull(Tp &t) {
+        t->info.update(t->ch[0]->info, t->ch[1]->info);
     }
-    template<class T>
-    void init(std::vector<T> init_) {
-        n = init_.size();
-        Node* now = new Node;
-        root.emplace_back(now);
-        std::function<void(Node*, int, int)> 
-        build = [&] (Node* now, int l, int r) {
+    template<typename T>
+    void init(const std::vector<T> &_init) {
+        n = _init.size();
+        root.push_back(_new());
+        std::function<void(Tp, int, int)>
+        build = [&] (Tp t, int l, int r) {
             if (r - l == 1) {
-                now->val = init_[l];
+                t->info = _init[l];
                 return;
             }
             int m = (l + r) / 2;
-            now->ch[0] = new Node;
-            now->ch[1] = new Node;
-            build(now->ch[0], l, m);
-            build(now->ch[1], m, r);
-            pull(now);
+            t->ch[0] = _new(), t->ch[1] = _new();
+            build(t->ch[0], l, m), build(t->ch[1], m, r);
+            pull(t);
         };
-        build(now, 0, n);
+        build(root.back(), 0, n);
     }
-    void pull(Node* now) {
-        now->val = now->ch[0]->val + now->ch[1]->val;
+    void modify(Tp &t0, Tp &t1, const Info &v, int l, int r, int x) {
+        if (r - l == 1) {
+            t1->info = t0->info;
+            t1->info.apply(v);
+            return;
+        }
+        int m = (l + r) >> 1;
+        t1->info.cnt = t0->info.cnt + 1;
+        if (m > x) {
+            t1->ch[0] = _new();
+            t1->ch[1] = t0->ch[1];
+            modify(t0->ch[0], t1->ch[0], v, l, m, x);
+        } else {
+            t1->ch[0] = t0->ch[0];
+            t1->ch[1] = _new();
+            modify(t0->ch[1], t1->ch[1], v, m, r, x);
+        }
+        // pull(t1);
     }
     void modify(int x, const Info &v, int from = -1) {
-        Node* last = (from == -1 ? root.back() : root[from]);
-        Node* now = new Node;
-        root.emplace_back(now);
-        std::function<void(Node*, Node*, int, int)> 
-        modify = [&] (Node* last, Node* now, int l, int r) -> void {
-            if (r - l == 1) {
-                now->val = last->val;
-                now->val.apply(v);
-                return;
-            }
-            int m = (l + r) / 2;
-            if(x < m) {
-                now->ch[0] = new Node;
-                now->ch[1] = last->ch[1];
-                modify(last->ch[0], now->ch[0], l, m);
-            } else {
-                now->ch[0] = last->ch[0];
-                now->ch[1] = new Node;
-                modify(last->ch[1], now->ch[1], m, r);
-            }
-            pull(now);
-        };
-        modify(last, now, 0, n);
+        Tp t0 = (from == -1 ? root.back() : root[from]);
+        Tp t1 = _new();
+        root.push_back(t1);
+        modify(t0, t1, v, 0, n, x);
     }
-    Info rangeQuery(int from, int to, int x, int y) {
-        Node* last = root[from], *now = root[to];
-        std::function<Info(Node*, Node*, int, int)>
-        rangeQuery = [&] (Node* last, Node* now, int l, int r) {
-            if (l >= y || r <= x) {
-                return Info();
-            }
-            if (l >= x && r <= y) {
-                return now->val - last->val;
-            }
-            int m = (l + r) / 2;
-            return rangeQuery(last->ch[0], now->ch[0], l, m)
-                    + rangeQuery(last->ch[1], now->ch[1], m, r);
-        };
-        return rangeQuery(last, now, 0, n);
-    };
-    Info kth(int from, int to, int k) {
-        Node* last = root[from], * now = root[to];
-        std::function<Info(Node*, Node*, int, int, int)> 
-        kth = [&] (Node* last, Node* now, int l, int r, int k) {
-            if (r - l == 1) {
-                return Info(l, now->val(k));
-            }
-            int m = (l + r) / 2;
-            Info ls = now->ch[0]->val - last->ch[0]->val;
-            if (k <= ls) {
-                return kth(last->ch[0], now->ch[0], l, m, k);
-            } else {
-                return kth_merge(now->ch[0]->val - last->ch[0]->val, 
-                        kth(last->ch[1], now->ch[1], m, r, k - int(ls)));
-            }
-        };
-        return kth(last, now, 0, n, k);
+    Info range_query(Tp &t0, Tp &t1, int l, int r, int x, int y) {
+        if (x <= l && r <= y) {
+            return Info::del(t1->info, t0->info);
+        }
+        int m = (l + r) >> 1;
+        if (m >= y) {
+            return range_query(t0->ch[0], t1->ch[0], l, m, x, y);
+        } else if (m <= x) {
+            return range_query(t0->ch[1], t1->ch[1], m, r, x, y);
+        } else {
+            return Info::merge(range_query(t0->ch[0], t1->ch[0], l, m, x, y), range_query(t0->ch[1], t1->ch[1], m, r, x, y));
+        }
     }
-    void show(int t) {
-        Node* now = root[t];
-        std::function<void(Node*, int, int)> 
-        show = [&] (Node* now, int l, int r) {
-            if (r - l == 1) {
-                now->val.show();
-                return;
-            }
-            int m = (l + r) / 2;
-            show(now->ch[0], l, m);
-            show(now->ch[1], m, r);
-        };
-        show(now, 0, n);
+    Info range_query(int from, int to, int x, int y) {
+        return range_query(root[from], root[to], 0, n, x, y);
+    }
+    int kth(Tp t0, Tp t1, int l, int r, i64 k) {
+        if (r - l == 1) {
+            return l;
+        }
+        int m = (l + r) >> 1;
+        // d
+        i64 lhs = t1->ch[0]->info.cnt - t0->ch[0]->info.cnt;
+        if (lhs >= k) {
+            return kth(t0->ch[0], t1->ch[0], l, m, k);
+        } else {
+            return kth(t0->ch[1], t1->ch[1], m, r, k - lhs);
+        }
+    }
+    int kth(int from, int to, i64 k) {
+        return kth(root[from], root[to], 0, n, k);
+    }
+    void show(Tp &t, int l, int r, int dep = 0) {
+        if (!t) {
+            return;
+        }
+        int m = (l + r) >> 1;
+        show(t->ch[0], l, m, dep + 1);
+        for (int i = 1; i <= dep; i += 1) cerr << '\t';
+        t->info.show();
         cerr << endl;
+        show(t->ch[1], m, r, dep + 1);
     }
-    int now_time () {
-        return int(root.size()) - 1;
+    void show(int time) {
+        show(root[time],0, n);
     }
 };
 
 struct Info {
-    i64 cnt;
-    i64 sum;
-    i64 real;
-    Info(i64 cnt = 0, i64 sum = 0) : cnt(cnt), sum(sum) {}
+    i64 cnt = 0;
     void apply(const Info &v) {
         cnt += v.cnt;
-        sum += 1ll * v.cnt * real;
+    }
+    void update(const Info &lhs, const Info &rhs) {
+        cnt = lhs.cnt + rhs.cnt;
+    }
+    Info del(const Info &lhs, const Info &rhs) {
+        return {lhs.cnt - rhs.cnt};
+    }
+    Info merge(const Info &lhs, const Info &rhs) {
+        Info info = Info();
+        info.update(lhs, rhs);
+        return info;
     }
     void show() {
-        debug(cnt, sum, real);
-    }
-    operator int() {
-        return cnt;
-    }
-    i64 operator() (int k) {
-        return 1ll * k * real;
-    }
-    friend Info kth_merge(Info lhs, Info rhs) {
-        return Info(rhs.cnt, lhs.sum + rhs.sum);
+        cerr << "info: " << cnt << ' ';
     }
 };
 
-Info operator+ (Info lhs, Info rhs) {
-    return Info(lhs.cnt + rhs.cnt, lhs.sum + rhs.sum);
-}
-Info operator- (Info lhs, Info rhs) {
-    return Info(lhs.cnt - rhs.cnt, lhs.sum - rhs.sum);
-}
-
-struct Node {
-    array<Node*, 2> ch{};
-    Info val;
-};
-
-using SegmentTree = Chair_Tree<Node, Info>;
+using SegmentTree = persistent_segment_tree<Info>;
