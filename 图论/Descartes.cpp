@@ -1,14 +1,13 @@
-template<class T>
+template<typename T>
 struct Descartes {
     int n;
-    vector <T> v;
+    vector<T> v;
     vector<int> ls, rs;
 
     Descartes(int n) : ls(n, -1), rs(n, -1), v(n) {}
+    Descartes(vector<T> &v) : n(v.size()), ls(n, -1), rs(n, -1), v(v) {}
 
-    Descartes(vector <T> &v) : n((ll) v.size()), ls(n, -1), rs(n, -1), v(v) {}
-
-    int build() /* return root */ {
+    int build() {
         vector<int> s(n);
         int top = 0;
         int root = -1;

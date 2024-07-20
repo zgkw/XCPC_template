@@ -10,7 +10,7 @@ int  main () {
     std::cin.tie (nullptr) ;
 # endif
     std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
-    auto rnd = (i64 l, i64 r) [&] {
+    auto rnd = [&] (i64 l, i64 r) {
         uniform_int_distribution<long long> _rnd(l, r);
     	return _rnd(rng);
     };

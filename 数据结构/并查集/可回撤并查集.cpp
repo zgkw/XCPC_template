@@ -1,7 +1,7 @@
 struct DSU {
-    std::vector<int> fa, size_;
-    std::stack <pair<int &, int>> history_size;
-    std::stack <pair<int &, int>> history_fa;
+    vector<int> fa, siz;
+    vector<array<int, 4>> h;
+    vector<i64> lazy;
 
     DSU() {}
 
@@ -11,17 +11,20 @@ struct DSU {
 
     void init(int n) {
         fa.resize(n);
-        std::iota(fa.begin(), fa.end(), 0);
-        size_.assign(n, 1);
+        iota(fa.begin(), fa.end(), 0);
+        siz.assign(n, 1);
+        lazy.assign(n, 0);
     }
 
     int find(int x) {
-        while (x != fa[x]) x = fa[x];
+        while (x != fa[x]) {
+            x = fa[x];
+        }
         return x;
     }
 
     int size(int x) {
-        return size_[find(x)];
+        return siz[find(x)];
     }
 
     bool same(int u, int v) {
@@ -32,23 +35,25 @@ struct DSU {
         int x = find(u);
         int y = find(v);
         if (x == y) return;
-        if (size_[x] < size_[y]) std::swap(x, y);
-        history_size.emplace(size_[x], size_[x]);
-        size_[x] = size_[x] + size_[y];
-        history_fa.emplace(fa[y], fa[y]);
+        if (siz[x] < siz[y]) std::swap(x, y);
+        h.push_back({x, y, siz[x], fa[y]});
+        siz[x] = siz[x] + siz[y];
         fa[y] = x;
+        int p = y;
+        lazy[y] -= lazy[x];
     }
 
-    int history() {
-        return history_fa.size();
+    int clock() {
+        return h.size();
     }
 
-    void roll(int h) {
-        while (history_fa.size() > h) {
-            history_fa.top().first = history_fa.top().second;
-            history_fa.pop();
-            history_size.top().first = history_size.top().second;
-            history_size.pop();
+    void roll(int to) {
+        while (h.size() > to) {
+            auto [u, v, sizu, fav] = h.back();
+            siz[u] = sizu;
+            fa[v] = fav;
+            h.pop_back();
+            lazy[v] += lazy[u];
         }
     }
 };

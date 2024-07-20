@@ -35,7 +35,7 @@ struct StringHash {
         array<int, N> ans{};
         if (l > r) return {0, 0};
         for (int i = 0; i < N; i++) {
-            ans[i] = (h[r][i] - 1ll * (l == 0 ? 0ll : h[l - 1][i]) * (r - l + 1 == 0 ? 1ll : p[r - l][i]) % mod[i] + mod[i]) % mod[i];
+            ans[i] = ((h[r][i] - 1ll * (l == 0 ? 0ll : h[l - 1][i]) * (r - l + 1 == 0 ? 1ll : p[r - l][i])) % mod[i] + mod[i]) % mod[i];
         }
         return ans;
     }

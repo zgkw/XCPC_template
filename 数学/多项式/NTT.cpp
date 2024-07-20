@@ -25,7 +25,7 @@ template<int P>
 constexpr void dft(std::vector<MInt<P>> &a) {
     int n = a.size();
     
-    if (int(rev.size()) != n) {
+    if (rev.size() != n) {
         int k = __builtin_ctz(n) - 1;
         rev.resize(n);
         for (int i = 0; i < n; i++) {
@@ -76,29 +76,15 @@ constexpr void idft(std::vector<MInt<P>> &a) {
 template<int P = ::P>
 struct Poly : public std::vector<MInt<P>> {
     using Value = MInt<P>;
-    
-    Poly() : std::vector<Value>() {}
-    explicit constexpr Poly(int n) : std::vector<Value>(n) {}
-    
-    explicit constexpr Poly(const std::vector<Value> &a) : std::vector<Value>(a) {}
-    constexpr Poly(const std::initializer_list<Value> &a) : std::vector<Value>(a) {}
-    
-    template<class InputIt, class = std::_RequireInputIter<InputIt>>
-    explicit constexpr Poly(InputIt first, InputIt last) : std::vector<Value>(first, last) {}
-    
-    template<class F>
-    explicit constexpr Poly(int n, F f) : std::vector<Value>(n) {
-        for (int i = 0; i < n; i++) {
-            (*this)[i] = f(i);
-        }
-    }
+    using vector<MInt<P>>::vector;
+    using vector<MInt<P>>::size;
     
     constexpr Poly shift(int k) const {
         if (k >= 0) {
             auto b = *this;
             b.insert(b.begin(), k, 0);
             return b;
-        } else if (this->size() <= -k) {
+        } else if (size() <= -k) {
             return Poly();
         } else {
             return Poly(this->begin() + (-k), this->end());
@@ -148,7 +134,6 @@ struct Poly : public std::vector<MInt<P>> {
             n *= 2;
         }
         if (((P - 1) & (n - 1)) != 0 || b.size() < 128) {
-        
             Poly c(a.size() + b.size() - 1);
             for (int i = 0; i < a.size(); i++) {
                 for (int j = 0; j < b.size(); j++) {
@@ -202,29 +187,29 @@ struct Poly : public std::vector<MInt<P>> {
         return (*this) = (*this) / b;
     }
     template <class T>
-    constexpr Value operator() ( T x ) {
-        Value ans = 0 ;
-        Value cnt = 1 ;
-        for ( int i = 0 ; i < this->size () ; ++ i ) {
-            ans += (* this) [ i ] * cnt ;
+    constexpr Value operator()(T x) {
+        Value ans = 0;
+        Value cnt = 1;
+        for (int i = 0; i < size(); i++) {
+            ans += (*this)[i] * cnt;
             cnt *= x ;
         }
-        return ans ;
+        return ans;
     }
     constexpr Poly deriv() const {
         if (this->empty()) {
             return Poly();
         }
-        assert (this->size() != 0) ;
-        Poly res(this->size() - 1);
-        for (int i = 0; i < this->size() - 1; ++i) {
+        assert(size() != 0) ;
+        Poly res(size() - 1);
+        for (int i = 0; i < size() - 1; ++i) {
             res[i] = (i + 1) * (*this)[i + 1];
         }
         return res;
     }
     constexpr Poly integr() const {
-        Poly res(this->size() + 1);
-        for (int i = 0; i < this->size(); ++i) {
+        Poly res(size() + 1);
+        for (int i = 0; i < size(); ++i) {
             res[i + 1] = (*this)[i] / (i + 1);
         }
         return res;
@@ -252,10 +237,10 @@ struct Poly : public std::vector<MInt<P>> {
     }
     constexpr Poly pow(int k, int m) const {
         int i = 0;
-        while (i < this->size() && (*this)[i] == 0) {
+        while (i < size() && (*this)[i] == 0) {
             i++;
         }
-        if (i == this->size() || 1LL * i * k >= m) {
+        if (i == size() || 1LL * i * k >= m) {
             return Poly(m);
         }
         Value v = (*this)[i];
@@ -264,10 +249,10 @@ struct Poly : public std::vector<MInt<P>> {
     }
     constexpr Poly pow(int k, int m, int k2) const {
         int i = 0;
-        while (i < this->size() && (*this)[i] == 0) {
+        while (i < size() && (*this)[i] == 0) {
             i++;
         }
-        if (i == this->size() || 1LL * i * k >= m) {
+        if (i == size() || 1LL * i * k >= m) {
             return Poly(m);
         }
         Value v = (*this)[i];
@@ -284,17 +269,17 @@ struct Poly : public std::vector<MInt<P>> {
         return x.trunc(m);
     }
     constexpr Poly inv() const {
-        return move (inv(this->size ())) ;
+        return inv(size()) ;
     }
     constexpr Poly log() const {
-        return move(log(this->size ()));
+        return log(size());
     }
     constexpr Poly exp() const {
-        return move(exp(this->size ()));
+        return exp(size());
     }
     constexpr Poly pow(i64 b) const {
-        Poly<> res (vector <Z> { 1 }) ;
-        auto a = * this ; 
+        Poly<> res(vector<Z>{1}) ;
+        auto a = *this; 
         for (; b; b /= 2, a *= a) {
             if (b % 2) {
                 res *= a;
@@ -303,7 +288,7 @@ struct Poly : public std::vector<MInt<P>> {
         return res;
     }
     constexpr Poly sqrt() const {
-        return move(sqrt(this->size()));
+        return move(sqrt(size()));
     }
     constexpr Poly mulT(Poly b) const {
         if (b.size() == 0) {
@@ -314,10 +299,10 @@ struct Poly : public std::vector<MInt<P>> {
         return ((*this) * b).shift(-(n - 1));
     }
     constexpr std::vector<Value> eval(std::vector<Value> x) const {
-        if (this->size() == 0) {
+        if (size() == 0) {
             return std::vector<Value>(x.size(), 0);
         }
-        const int n = std::max(x.size(), this->size());
+        const int n = std::max(x.size(), size());
         std::vector<Poly> q(4 * n);
         std::vector<Value> ans(x.size());
         x.resize(n);
@@ -334,16 +319,16 @@ struct Poly : public std::vector<MInt<P>> {
         build(1, 0, n);
         std::function<void(int, int, int, const Poly &)> work = [&](int p, int l, int r, const Poly &num) {
             if (r - l == 1) {
-                if (l < int(ans.size())) {
+                if (l < ans.size()) {
                     ans[l] = num[0];
                 }
             } else {
                 int m = (l + r) / 2;
                 auto need = move(num.mulT(q[2 * p + 1]));
-                need.resize ( m - l ) ;
+                need.resize(m - l);
                 work(2 * p, l, m, need);
                 need = move(num.mulT(q[2 * p]));
-                need.resize ( r - m ) ;
+                need.resize(r - m);
                 work(2 * p + 1, m, r, need);
             }
         };
@@ -352,7 +337,7 @@ struct Poly : public std::vector<MInt<P>> {
     }
 };
  
-template<int P = ::P>
+template<int P>
 Poly<P> berlekampMassey(const Poly<P> &s) {
     Poly<P> c;
     Poly<P> oldC;
@@ -396,7 +381,7 @@ Poly<P> berlekampMassey(const Poly<P> &s) {
 }
  
  
-template<int P = ::P>
+template<int P>
 MInt<P> linearRecurrence(Poly<P> p, Poly<P> q, i64 n) {
     int m = q.size() - 1;
     while (n > 0) {
