@@ -18,7 +18,7 @@ struct KMP{
             pi[i] = j;
         }
     }
- 
+
     void compute_automaton(string s) {
         aut.resize(n, vector<int>(26));
         for (int i = 0; i < n; i++) {
