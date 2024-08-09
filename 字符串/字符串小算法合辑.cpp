@@ -125,6 +125,13 @@ auto get_nxt_subseq(string s) {
     return nxt;
 }
 
+auto jump(string s, vector<vector<int>> &nxt) {
+    int now = 0;
+    for (int i = 0; i < s.size(); i++) {
+        now = nxt[now][s[i] - 'a'];
+    }
+    return now;
+}
 // z函数
 // Z函数：S与S[i~n]（S的每个后缀）的LCP长度
 
