@@ -70,7 +70,7 @@ struct Linear_sieves {
                 div[i] = {1, i};
             }
             for (i64 j = 0; i * Prime[j] <= n; ++j) {
-                div[i * Prime[j]] = {Prime[j], i};
+                div[i * Prime[j]] = {i, Prime[j]};
                 if (i % Prime[j] == 0) break;
             }
         }

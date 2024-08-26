@@ -155,37 +155,21 @@ struct LazySegmentTree {
     }
 };
 
-constexpr i64 inf = 1e18;
-
 struct Tag {
-    i64 d = 0;
-    void apply(Tag t) {
-        d += t.d;
-    }
-    operator bool() {
-        return d != 0;
+    void apply(Tag t) {}
+    constexpr operator bool() {
+        return true;
     }
     void show() const {
 # ifdef LOCAL
-        cerr << "tag: " << d << ";";
+        cerr << "tag: " << ";";
 # endif
     }
 };
 
-constexpr int N = 20;
-
 struct Info {
-    array<double, 2> val{0, 1};
-    void apply(const Tag &t, int l, int r) {
-        tie(val[0], val[1]) 
-            = make_tuple(val[0] * cos(t.d) + val[1] * sin(t.d),
-                         val[1] * cos(t.d) - val[0] * sin(t.d));
-    }
-    void update(const Info &lhs, const Info &rhs, int l, int m, int r) {
-        for (auto i : {0, 1}) {
-            val[i] = lhs.val[i] + rhs.val[i];
-        }
-    }   
+    void apply(const Tag &t, int l, int r) {}
+    void update(const Info &lhs, const Info &rhs, int l, int m, int r) {}   
     static Info merge(const Info &lhs, const Info &rhs, int l, int m, int r) {
         Info info = Info();
         info.update(lhs, rhs, l, m, r);
@@ -193,7 +177,7 @@ struct Info {
     }
     void show() {
 # ifdef LOCAL
-        cerr << "info: " << val << "; ";
+        cerr << "info: " << "; ";
 # endif
     }
 };
