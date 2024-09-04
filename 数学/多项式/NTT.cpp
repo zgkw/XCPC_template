@@ -153,7 +153,7 @@ struct Poly : public std::vector<MInt<P>> {
         a.resize(tot);
         return a;
     }
-    // 多项式 / 多项式 F = Q * G + R -> {Q, R}
+    // 多项式F / 多项式G F = Q * G + R -> {Q, R}
     constexpr friend pair<Poly, Poly> operator/(Poly F, Poly G) {
         int n = F.size() - 1, m = G.size() - 1;
         assert(n >= m);
