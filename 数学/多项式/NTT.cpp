@@ -275,7 +275,7 @@ struct Poly : public std::vector<MInt<P>> {
         auto f = shift(-i) * v.inv();
         return (f.log(m - i * k) * k).exp(m - i * k).shift(i * k) * power(v, k2);
     }
-    // sqrt(F)，需要保证 F[0] = 1
+    // sqrt(F) mod(x^m)，需要保证 F[0] = 1
     constexpr Poly sqrt(int m) const {
         Poly x{1};
         int k = 1;
@@ -306,6 +306,7 @@ struct Poly : public std::vector<MInt<P>> {
         }
         return res;
     }
+    // 需要保证 F[0] = 1
     constexpr Poly sqrt() const {
         return move(sqrt(size()));
     }
