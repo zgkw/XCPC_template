@@ -318,6 +318,7 @@ struct Poly : public std::vector<MInt<P>> {
         std::reverse(b.begin(), b.end());
         return ((*this) * b).shift(-(n - 1));
     }
+    // 多项式多点求值
     constexpr std::vector<Value> eval(std::vector<Value> x) const {
         if (size() == 0) {
             return std::vector<Value>(x.size(), 0);
