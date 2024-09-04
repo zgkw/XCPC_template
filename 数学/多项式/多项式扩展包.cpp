@@ -8,7 +8,7 @@ namespace ExPoly {
         vector <Poly<>> M(4 * n);
         std::function<void(int, int, int)> build = [&](int p, int l, int r) {
             if (r - l == 1) {
-                M[p] = Poly{(int) -x[l], 1};
+                M[p] = Poly<P>{(int) -x[l], 1};
             } else {
                 int m = (l + r) / 2;
                 build(2 * p, l, m);
@@ -25,7 +25,7 @@ namespace ExPoly {
         std::function<void(int, int, int)> work = [&](int p, int l, int r) -> void {
             if (r - l == 1) {
                 if (l < n) {
-                    f[p] = Poly{(int) M_[l]};
+                    f[p] = Poly<P>{(int) M_[l]};
                 }
             } else {
                 int m = (l + r) / 2;
