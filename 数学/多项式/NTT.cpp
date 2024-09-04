@@ -153,7 +153,7 @@ struct Poly : public std::vector<MInt<P>> {
         a.resize(tot);
         return a;
     }
-    // 多项式F / 多项式G F = Q * G + R -> {Q, R}
+    // 多项式 / 多项式 F = Q * G + R -> {Q, R}
     constexpr friend pair<Poly, Poly> operator/(Poly F, Poly G) {
         int n = F.size() - 1, m = G.size() - 1;
         assert(n >= m);
@@ -226,6 +226,7 @@ struct Poly : public std::vector<MInt<P>> {
         }
         return res;
     }
+    // F^{-1} mod(x^m)
     constexpr Poly inv(int m) const {
         Poly x{(*this)[0].inv()};
         int k = 1;
@@ -235,9 +236,11 @@ struct Poly : public std::vector<MInt<P>> {
         }
         return x.trunc(m);
     }
+    // ln(F) mod(x^m)，需要保证 F[0] = 1
     constexpr Poly log(int m) const {
         return (deriv() * inv(m)).integr().trunc(m);
     }
+    // e^(F) mod(x^m)，需要保证 F[0] = 0
     constexpr Poly exp(int m) const {
         Poly x{1};
         int k = 1;
@@ -247,6 +250,7 @@ struct Poly : public std::vector<MInt<P>> {
         }
         return x.trunc(m);
     }
+    // F^k mod(x^m)，需要保证 F[0] = 1
     constexpr Poly pow(int k, int m) const {
         int i = 0;
         while (i < size() && (*this)[i] == 0) {
@@ -271,6 +275,7 @@ struct Poly : public std::vector<MInt<P>> {
         auto f = shift(-i) * v.inv();
         return (f.log(m - i * k) * k).exp(m - i * k).shift(i * k) * power(v, k2);
     }
+    // sqrt(F)，需要保证 F[0] = 1
     constexpr Poly sqrt(int m) const {
         Poly x{1};
         int k = 1;
@@ -283,9 +288,11 @@ struct Poly : public std::vector<MInt<P>> {
     constexpr Poly inv() const {
         return inv(size()) ;
     }
+    // 需要保证 F[0] = 1
     constexpr Poly log() const {
         return log(size());
     }
+    // 需要保证 F[0] = 0
     constexpr Poly exp() const {
         return exp(size());
     }
