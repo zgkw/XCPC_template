@@ -103,6 +103,17 @@ struct Poly : public vector<double> {
     friend Poly operator-(Poly x, Poly y) {
         return x + -y;
     }
+
+    friend Poly operator*(Poly x, int _mul) {
+        for(int i = 0; i < x.size(); ++i) {
+            x[i] *= _mul;
+        }
+        return x;
+    };
+    friend Poly operator*(int _mul, Poly x) {
+        return x * _mul;
+    };
+
     Poly &operator+=(Poly y) {
         return *this = *this + y;
     }
@@ -110,6 +121,10 @@ struct Poly : public vector<double> {
         return *this = *this - y;
     }
     Poly &operator*=(Poly y) {
+        return *this = *this * y;
+    }
+
+    Poly &operator*=(int y) {
         return *this = *this * y;
     }
     template<typename T>
