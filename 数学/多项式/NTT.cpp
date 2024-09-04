@@ -153,7 +153,6 @@ struct Poly : public std::vector<MInt<P>> {
         a.resize(tot);
         return a;
     }
-    
     // 多项式 / 多项式 F = Q * G + R -> {Q, R}
     constexpr friend pair<Poly, Poly> operator/(Poly F, Poly G) {
         int n = F.size() - 1, m = G.size() - 1;
@@ -165,6 +164,12 @@ struct Poly : public std::vector<MInt<P>> {
         Poly R = F - G * Q;
         R.resize(m);
         return {Q, R};
+    }
+    constexpr friend Poly operator*(Value a, Poly b) {
+        for (int i = 0; i < int(b.size()); i++) {
+            b[i] *= a;
+        }
+        return b;
     }
     constexpr friend Poly operator*(Poly a, Value b) {
         for (int i = 0; i < int(a.size()); i++) {
