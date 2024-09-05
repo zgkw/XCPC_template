@@ -358,9 +358,9 @@ struct Poly : public std::vector<MInt<P>> {
     }
 };
  
-template<int P>
 // 求一个数列的最短递推式，时间复杂度O(nm)，m为最短递推式的阶数
 // 若数列无穷，则需预测m范围，并取出序列的前 2m 项，即n = 2*m
+template<int P>
 Poly<P> berlekampMassey(const Poly<P> &s) {
     Poly<P> c;
     Poly<P> oldC;
@@ -403,10 +403,12 @@ Poly<P> berlekampMassey(const Poly<P> &s) {
     return c;
 }
  
- 
-template<int P> 
+// 常系数齐次线性递推, 求f_n 
+// 给定{p_i}前k项p_0 ~ p_{k-1}，和其递推式 q_0 * p_n + \sum_{i=1}^k { q_i * p_{n-i} } = 0 的各项系数，其中q_0 = 1
+template<int P>
 MInt<P> linearRecurrence(Poly<P> p, Poly<P> q, i64 n) {
     int m = q.size() - 1;
+    p = (p * q).trunc(m);
     while (n > 0) {
         auto newq = q;
         for (int i = 1; i <= m; i += 2) {
@@ -415,9 +417,11 @@ MInt<P> linearRecurrence(Poly<P> p, Poly<P> q, i64 n) {
         auto newp = p * newq;
         newq = q * newq;
         for (int i = 0; i < m; i++) {
+            assert(newp.size() > i * 2 + n % 2);
             p[i] = newp[i * 2 + n % 2];
         }
         for (int i = 0; i <= m; i++) {
+            assert(newq.size() > i * 2);
             q[i] = newq[i * 2];
         }
         n /= 2;
