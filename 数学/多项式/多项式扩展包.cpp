@@ -2,6 +2,7 @@
  * 多项式扩展包 
 */
 namespace ExPoly {
+	// 时间复杂度 O(n log^2)
     template<int P = ::P, class T1, class T2>
     constexpr static Poly <P> Lagrange(T1 x, T2 y) {
         int n = x.size();

@@ -318,7 +318,7 @@ struct Poly : public std::vector<MInt<P>> {
         std::reverse(b.begin(), b.end());
         return ((*this) * b).shift(-(n - 1));
     }
-    // 多项式多点求值
+    // 多项式多点求值 O(nlog^2)
     constexpr std::vector<Value> eval(std::vector<Value> x) const {
         if (size() == 0) {
             return std::vector<Value>(x.size(), 0);
@@ -359,6 +359,8 @@ struct Poly : public std::vector<MInt<P>> {
 };
  
 template<int P>
+// 求一个数列的最短递推式，时间复杂度O(nm)，m为最短递推式的阶数
+// 若数列无穷，则需预测m范围，并取出序列的前 2m 项，即n = 2*m
 Poly<P> berlekampMassey(const Poly<P> &s) {
     Poly<P> c;
     Poly<P> oldC;
@@ -402,7 +404,7 @@ Poly<P> berlekampMassey(const Poly<P> &s) {
 }
  
  
-template<int P>
+template<int P> 
 MInt<P> linearRecurrence(Poly<P> p, Poly<P> q, i64 n) {
     int m = q.size() - 1;
     while (n > 0) {
