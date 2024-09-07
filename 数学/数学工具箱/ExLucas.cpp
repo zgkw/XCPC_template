@@ -1,3 +1,8 @@
+/**
+ * 算法：扩展lucas
+ * 作用：在p为非质数情况下，大数组合数C(n,m)
+ * 必要情况下，预处理降低复杂度，复杂度O(p logp)
+*/
 using i64 = long long;
 i64 mul(i64 a, i64 b, i64 P) {
     return static_cast<__int128>(a) * b % P;
@@ -43,7 +48,6 @@ constexpr T Extend_the_Chinese_remainder_theorem
     }
     return a1;
 }
-// 扩展卢卡斯定理，O(P logP)
 i64 Exlucas(i64 n, i64 m, i64 P) {
     std::vector <i64> p, a;
     function <i64(i64, i64, i64)> calc = [&](i64 n, i64 x, i64 P) mutable -> i64 {
