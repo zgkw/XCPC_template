@@ -30,10 +30,6 @@ struct LinkCutTree {
             tree[x].tag = 0;
         }
     }
-
-private:
-
-
     void maintain(int x) {
         if (notroot(x)) maintain(fa(x));
         push(x);
@@ -51,8 +47,6 @@ private:
         fa(y) = x;
         pull(y);
     }
-
-public:
     void splay(int x) {
         maintain(x);
         while (notroot(x)) {
@@ -150,48 +144,14 @@ public:
     }
 };
 
-constexpr int inf = 1e9;
-
 struct Info {
-    int c = 0, w = 0;
-    i64 vsum = 0; int vsz = 0;
-    i64 sum = 0; int szsum = 0;
-    i64 lw = 0, rw = 0;
-    i64 vsumsum = 0;
-    i64 vedge = 0;
-    i64 vedgesum = 0;
-    void reverse() {
-        // debug(sum);
-        sum = szsum * (lw + w + rw) - sum - vedgesum; 
-        swap(lw, rw);
-    }
-    void modify(const Info& rhs) {
-        c = !c;
-    }
-    void virtual_update(const Info &rhs) {
-        vsum += rhs.Sum();
-        vedge += 1ll * rhs.szsum * w;
-        vsz += rhs.szsum;
-    }
-    void roll_virtual(const Info &rhs) {
-        vsum -= rhs.Sum();
-        vedge -= 1ll * rhs.szsum * w;
-        vsz -= rhs.szsum;
-    }
-    void update(const Info &lhs, const Info &rhs) {
-        szsum = lhs.szsum + c + rhs.szsum + vsz;
-        lw = lhs.lw + lhs.w + lhs.rw;
-        rw = rhs.lw + rhs.w + rhs.rw;
-        sum = lhs.sum + c * lw + rhs.sum + (lw + w) * rhs.szsum + (lw) * vsz;
-        vsumsum = lhs.vsumsum + vsum + rhs.vsumsum;
-        vedgesum = lhs.vedgesum + vedge + rhs.vedgesum;
-    }
-    i64 Sum() const { return sum + vsumsum + vedgesum; }
-    void defaultclear() {
-    }
-    void show() {
-        debug(w, c, vsum, vsz, lw, rw, sum, vsz, szsum);
-    }
+    void reverse() {}
+    void modify(const Info& rhs) {}
+    void virtual_update(const Info &rhs) {}
+    void roll_virtual(const Info &rhs) {}
+    void update(const Info &lhs, const Info &rhs) {}
+    void defaultclear() {}
+    void show() {}
 };
 
 using Tree = LinkCutTree<Info>;

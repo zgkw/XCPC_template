@@ -66,20 +66,6 @@ struct SegmentTree {
         if (l >= r) return Info();
         return rangeQuery(1, 0, n, l, r);
     }
-    // int BS(int p, int l, int r, i64 k) {
-    //     // debug(l, r, k, info[p]);
-    //     if (info[p] < k) return -1;
-    //     if (r - l == 1) return l;
-    //     int m = (l + r) / 2;
-    //     if (info[p * 2].sum >= k) 
-    //         return BS(p * 2, l, m, k);
-    //     else 
-    //         return BS(p * 2 + 1, m, r, k - info[p * 2].sum);
-    // };
-    // int BS(i64 k) {
-    //     // debug(k);
-    //     return BS(1, 0, n, k);
-    // }
 
     template<class F>
     int findFirst(int p, int l, int r, int x, int y, F pred) {

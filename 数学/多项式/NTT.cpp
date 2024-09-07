@@ -153,6 +153,18 @@ struct Poly : public std::vector<MInt<P>> {
         a.resize(tot);
         return a;
     }
+    // 多项式 / 多项式 F = Q * G + R -> {Q, R}
+    constexpr friend pair<Poly, Poly> operator/(Poly F, Poly G) {
+        int n = F.size() - 1, m = G.size() - 1;
+        assert(n >= m);
+        Poly Fr = Poly<P>(F.rbegin(), F.rend()),  Gr = Poly<P>(G.rbegin(), G.rend());
+        Poly Qr = Fr * Gr.inv(n - m + 1);
+        Poly Q(n - m + 1);
+        for(int i = 0; i <= n - m; ++i) Q[i] = Qr[n - m - i];
+        Poly R = F - G * Q;
+        R.resize(m);
+        return {Q, R};
+    }
     constexpr friend Poly operator*(Value a, Poly b) {
         for (int i = 0; i < int(b.size()); i++) {
             b[i] *= a;
@@ -214,6 +226,7 @@ struct Poly : public std::vector<MInt<P>> {
         }
         return res;
     }
+    // F^{-1} mod(x^m)
     constexpr Poly inv(int m) const {
         Poly x{(*this)[0].inv()};
         int k = 1;
@@ -223,9 +236,11 @@ struct Poly : public std::vector<MInt<P>> {
         }
         return x.trunc(m);
     }
+    // ln(F) mod(x^m)，需要保证 F[0] = 1
     constexpr Poly log(int m) const {
         return (deriv() * inv(m)).integr().trunc(m);
     }
+    // e^(F) mod(x^m)，需要保证 F[0] = 0
     constexpr Poly exp(int m) const {
         Poly x{1};
         int k = 1;
@@ -235,6 +250,7 @@ struct Poly : public std::vector<MInt<P>> {
         }
         return x.trunc(m);
     }
+    // F^k mod(x^m)，需要保证 F[0] = 1
     constexpr Poly pow(int k, int m) const {
         int i = 0;
         while (i < size() && (*this)[i] == 0) {
@@ -259,6 +275,7 @@ struct Poly : public std::vector<MInt<P>> {
         auto f = shift(-i) * v.inv();
         return (f.log(m - i * k) * k).exp(m - i * k).shift(i * k) * power(v, k2);
     }
+    // sqrt(F) mod(x^m)，需要保证 F[0] = 1
     constexpr Poly sqrt(int m) const {
         Poly x{1};
         int k = 1;
@@ -271,9 +288,11 @@ struct Poly : public std::vector<MInt<P>> {
     constexpr Poly inv() const {
         return inv(size()) ;
     }
+    // 需要保证 F[0] = 1
     constexpr Poly log() const {
         return log(size());
     }
+    // 需要保证 F[0] = 0
     constexpr Poly exp() const {
         return exp(size());
     }
@@ -287,6 +306,7 @@ struct Poly : public std::vector<MInt<P>> {
         }
         return res;
     }
+    // 需要保证 F[0] = 1
     constexpr Poly sqrt() const {
         return move(sqrt(size()));
     }
@@ -298,6 +318,7 @@ struct Poly : public std::vector<MInt<P>> {
         std::reverse(b.begin(), b.end());
         return ((*this) * b).shift(-(n - 1));
     }
+    // 多项式多点求值 O(nlog^2)
     constexpr std::vector<Value> eval(std::vector<Value> x) const {
         if (size() == 0) {
             return std::vector<Value>(x.size(), 0);
@@ -337,6 +358,8 @@ struct Poly : public std::vector<MInt<P>> {
     }
 };
  
+// 求一个数列的最短递推式，时间复杂度O(nm)，m为最短递推式的阶数
+// 若数列无穷，则需预测m范围，并取出序列的前 2m 项，即n = 2*m
 template<int P>
 Poly<P> berlekampMassey(const Poly<P> &s) {
     Poly<P> c;
@@ -380,10 +403,12 @@ Poly<P> berlekampMassey(const Poly<P> &s) {
     return c;
 }
  
- 
+// 常系数齐次线性递推, 求f_n 
+// 给定{p_i}前k项p_0 ~ p_{k-1}，和其递推式 q_0 * p_n + \sum_{i=1}^k { q_i * p_{n-i} } = 0 的各项系数，其中q_0 = 1
 template<int P>
 MInt<P> linearRecurrence(Poly<P> p, Poly<P> q, i64 n) {
     int m = q.size() - 1;
+    p = (p * q).trunc(m);
     while (n > 0) {
         auto newq = q;
         for (int i = 1; i <= m; i += 2) {
@@ -392,9 +417,11 @@ MInt<P> linearRecurrence(Poly<P> p, Poly<P> q, i64 n) {
         auto newp = p * newq;
         newq = q * newq;
         for (int i = 0; i < m; i++) {
+            assert(newp.size() > i * 2 + n % 2);
             p[i] = newp[i * 2 + n % 2];
         }
         for (int i = 0; i <= m; i++) {
+            assert(newq.size() > i * 2);
             q[i] = newq[i * 2];
         }
         n /= 2;
