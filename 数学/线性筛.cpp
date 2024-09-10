@@ -1,13 +1,12 @@
-struct Linear_sieves {
-# define _Linear_sieves
+struct Sieves {
     int n;
     vector<int> Prime, Euler, Morbius, Approximate, Approximate_cnt;
     vector<bool> notprime;
     vector<array<i64, 2>> div;
 
-    Linear_sieves() {};
+    Sieves() {};
 
-    Linear_sieves(int _n) { init(_n); };
+    Sieves(int _n) { init(_n); };
 
     void init(int _n) {
         n = _n;
