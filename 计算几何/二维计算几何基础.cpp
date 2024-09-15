@@ -1,9 +1,3 @@
-// #include <bits/stdc++.h>
-
-// using namespace std;
-// #define IOS ios::sync_with_stdio(false), cin.tie(nullptr), cout.tie(nullptr);
-//  #define int long long
-
 template <class T>
 struct Point {
     T x;
