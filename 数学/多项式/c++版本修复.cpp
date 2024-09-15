@@ -3,11 +3,11 @@
 # include <utility> // for std::make_pair
 
 using cp = complex<double>;
-using __It = vector<cp>::iterator;
+using _Tp = vector<cp>::iterator;
 
-struct cxx20_It : public __It {
-    using __It::__It;
-    cxx20_It(const __It& it) : __It(it) {}
+struct cxx20_It : public _Tp {
+    using _Tp::_Tp;
+    cxx20_It(const _Tp& it) : _Tp(it) {}
     cp &operator [](int x) {
         return *(*this + x);
     }

@@ -1,45 +1,18 @@
-constexpr int max_size = 262144000;
-uint8_t buf[max_size];
-uint8_t *head = buf;
-
-using u32 = uint32_t;
-
-template <class T>
-struct u32_p {
-    u32 x;
-    u32_p(u32 x = 0) : x(x) {}
-    T *operator->() {
-        return (T *)(buf + x);
-    }
-    operator bool() {
-        return x;
-    }
-    operator u32() {
-        return x;
-    }
-    bool operator==(u32_p rhs) const {
-        return x == rhs.x;
-    }
-    static u32_p __new() {
-        return (head += sizeof(T)) - buf;
-    }
-};
-
-struct persistent_DSU {
+struct PDSU {
     int n;
     struct node;
-    using Tp = u32_p<node>;
+    using Tp = Base<node>;
     struct node {
         int f, siz;
         Tp ch[2];
     };
-    Tp _new() {
-        Tp t = Tp::__new();
+    Tp news() {
+        Tp t = Tp::news();
         return t;
     }
     vector<Tp> root;
-    persistent_DSU(): n(0) {} 
-    persistent_DSU(int _n, int _m = 0) {
+    PDSU(): n(0) {} 
+    PDSU(int _n, int _m = 0) {
         init(_n, _m);
     }
     void build(Tp t, int l, int r) {
@@ -49,13 +22,13 @@ struct persistent_DSU {
             return;
         }
         int m = (l + r) / 2;
-        t->ch[0] = _new(), t->ch[1] = _new();
+        t->ch[0] = news(), t->ch[1] = news();
         build(t->ch[0], l, m), build(t->ch[1], m, r);
     }
     void init(int _n, int m = 0) {
         n = _n;
         root.reserve(m + 1);
-        root.push_back(_new());
+        root.push_back(news());
         build(root.back(), 0, n);
     }
     void modify0(Tp &t0, Tp &t1, Tp v, int l, int r, int x) {
@@ -66,12 +39,12 @@ struct persistent_DSU {
         }
         int m = (l + r) >> 1;
         if (m > x) {
-            t1->ch[0] = _new();
+            t1->ch[0] = news();
             t1->ch[1] = t0->ch[1];
             modify0(t0->ch[0], t1->ch[0], v, l, m, x);
         } else {
             t1->ch[0] = t0->ch[0];
-            t1->ch[1] = _new();
+            t1->ch[1] = news();
             modify0(t0->ch[1], t1->ch[1], v, m, r, x);
         }
     }
@@ -86,12 +59,12 @@ struct persistent_DSU {
         }
         int m = (l + r) >> 1;
         if (m > x) {
-            t1->ch[0] = _new();
+            t1->ch[0] = news();
             t1->ch[1] = t0->ch[1];
             modify1(t0->ch[0], t1->ch[0], v, l, m, x);
         } else {
             t1->ch[0] = t0->ch[0];
-            t1->ch[1] = _new();
+            t1->ch[1] = news();
             modify1(t0->ch[1], t1->ch[1], v, m, r, x);
         }
     }
@@ -145,9 +118,9 @@ struct persistent_DSU {
         if (lhs->siz < rhs->siz) {
             swap(lhs, rhs);
         }
-        Tp cur0 = _new();
+        Tp cur0 = news();
         modify0(rhs->f, lhs, root[t], cur0);
-        Tp cur1 = _new();
+        Tp cur1 = news();
         modify1(lhs->f, rhs, cur0, cur1);
         root.push_back(cur1);
     }
@@ -155,4 +128,4 @@ struct persistent_DSU {
         root.push_back(root[t]);
     }
 };
-using DSU = persistent_DSU;
+using DSU = PDSU;

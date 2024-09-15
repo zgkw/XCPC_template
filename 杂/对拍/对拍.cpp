@@ -1,33 +1,32 @@
-#include <iostream>
-#include <cstdio>
-#include <windows.h>
-#include <cstdlib>
-#include <ctime>
-
+# include<bits/stdc++.h>
 using namespace std;
 
-int main() {
-    int ok = 0;
-    int n = 50;
-    for (int i = 1;; ++i) {
+using f80 = long double;
+
+void solve() {
+    for (int i = 1; ; i += 1) {
         system("data.exe > in.txt");
         system("std.exe < in.txt > std.txt");
-        double begin = clock();
+        f80 begin = clock();
         system("baoli.exe < in.txt > baoli.txt");
-        double end = clock();
-
-        double t = (end - begin);
+        f80 end = clock();
+        f80 t = end - begin;
         if (system("fc std.txt baoli.txt")) {
-            printf("测试点#%d Wrong Answer\n", i);
+            cout << "case " << i << " Wrong Answer" << endl;
             system("pause");
-        } else if (t > 2000) {
-            printf("测试点#%d Time Limited Exceeded 用时 %.0lfms\n", i, t);
         } else {
-            printf("测试点#%d Accepted 用时%.0lfms\n", i, t);
-            ok++; //AC数量+1
+            cout << "case " << i << " Accepted Answer" << endl;
         }
     }
-    printf("\n");
-    double res = 100.0 * ok / n;
-    printf("共 %d 组测试数据，AC数据 %d 组。 得分%.1lf。", n, ok, res);
+}
+
+signed main() {
+    ios::sync_with_stdio(0);
+    cin.tie(0);
+    signed t = 1;
+//    cin >> t;
+    while (t --) {
+        solve();
+    }
+    return 0;
 }
