@@ -1,36 +1,8 @@
-constexpr int max_size = 262144000;
-uint8_t buf[max_size];
-uint8_t *head = buf;
-
-using u32 = uint32_t;
-
-template <class T>
-struct u32_p {
-    u32 x;
-    u32_p(u32 x = 0) : x(x) {}
-    T *operator->() {
-        return (T *)(buf + x);
-    }
-    operator bool() {
-        return x;
-    }
-    operator u32() {
-        return x;
-    }
-    bool operator==(u32_p rhs) const {
-        return x == rhs.x;
-    }
-    static u32_p __new() {
-        // assert(x < max_size);
-        return (head += sizeof(T)) - buf;
-    }
-};
-
 constexpr double alpha = 0.75;
 template<typename Info>
 struct scapegoat_tree {
     struct node;
-    using Tp = u32_p<node>;
+    using Tp = Base<node>;
     struct node {
         Tp ch[2];
         Info val;

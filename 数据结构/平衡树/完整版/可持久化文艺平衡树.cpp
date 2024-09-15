@@ -1,35 +1,3 @@
-/**
- * 2147483647
- * 2062144000
- */
-using u32 = unsigned long long;
-
-constexpr u32 max_size = 2062144000;
-uint8_t buf[max_size];
-uint8_t *head = buf;
-
-
-template <class T>
-struct u32_p {
-    u32 x;
-    u32_p(u32 x = 0) : x(x) {}
-    T *operator->() {
-        return (T *)(buf + x);
-    }
-    operator bool() {
-        return x;
-    }
-    operator u32() {
-        return x;
-    }
-    bool operator==(u32_p rhs) const {
-        return x == rhs.x;
-    }
-    static u32_p __new() {
-        return (head += u32(sizeof(T))) - buf;
-    }
-};
-
 __gnu_cxx::sfmt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
 
 u32 stk[200];

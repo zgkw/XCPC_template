@@ -1,43 +1,15 @@
-constexpr int max_size = 262144000;
-uint8_t buf[max_size];
-uint8_t *head = buf;
-
-using u32 = uint32_t;
-
-template <class T>
-struct u32_p {
-    u32 x;
-    u32_p(u32 x = 0) : x(x) {}
-    T *operator->() {
-        return (T *)(buf + x);
-    }
-    operator bool() {
-        return x;
-    }
-    operator u32() {
-        return x;
-    }
-    bool operator==(u32_p rhs) const {
-        return x == rhs.x;
-    }
-    static u32_p __new() {
-        // assert(x < max_size);
-        return (head += sizeof(T)) - buf;
-    }
-};
-
 /**
  * FHQ_treap set卡常:
  * 1.递归改非递归       o
  * 2.insert split优化   o
  */
-
+# include <ext/random>
 __gnu_cxx::sfmt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
 template<typename Info>
 struct FHQ_treap {
     struct Node;
-    using Tp = u32_p<Node>;
+    using Tp = Base<Node>;
     struct Node {
         Tp ch[2];
         Info val;

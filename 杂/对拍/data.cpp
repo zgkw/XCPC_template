@@ -12,10 +12,8 @@ int gen(int min, int max) {
 }
 
 int  main () {
-# ifndef cin 
     std::ios::sync_with_stdio (false);
     std::cin.tie (nullptr) ;
-# endif
     vector<int> a;
     shuffle(a.begin(), a.end(), rng);
 
