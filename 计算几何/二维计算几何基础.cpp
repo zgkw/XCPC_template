@@ -186,8 +186,13 @@ T dist(Point<T> p, Line<T> line) {  // 计算点到线段的距离
 }
 
 template <class T>
-T dist(Point<T> a, Point<T> b) {  // 计算两点之间的距离
+double dist(Point<T> a, Point<T> b) {  // 计算两点之间的距离
     return std::hypot(a.x - b.x, a.y - b.y);
+}
+
+template <class T>
+int dist2(Point<T> a, Point<T> b) {  // 计算两点之间的距离平方
+    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
 }
 
 template <class T>
@@ -430,7 +435,6 @@ std::vector<Point<T>> hp(std::vector<Line<T>> lines) {
     return std::vector(ps.begin(), ps.end());
 }
 
-
 template <class T>
 std::vector<Point<T>> Andrew(std::vector<Point<T>> p) {  // 求凸包
     std::sort(p.begin(), p.end(), [&](Point<T> x, Point<T> y) {
@@ -455,9 +459,9 @@ std::vector<Point<T>> Andrew(std::vector<Point<T>> p) {  // 求凸包
     return stk;
 }
 
+// 旋转卡壳求凸包最远点对距离
 template <class T>
-std::pair<Point<T>, Point<T>> rotatingCalipers(
-    std::vector<Point<T>>& p) {  // 旋转卡壳求最远点对距离
+std::pair<Point<T>, Point<T>> rotatingCalipers(std::vector<Point<T>>& p) {
     T res = 0;
     std::pair<Point<T>, Point<T>> ans;
     int n = p.size();
@@ -465,16 +469,48 @@ std::pair<Point<T>, Point<T>> rotatingCalipers(
         while (cross(p[i + 1] - p[i], p[j] - p[i]) <
                cross(p[i + 1] - p[i], p[j + 1] - p[i]))
             j = (j + 1) % n;
-        if (dist(p[i], p[j]) > res) {
+        if (dist2(p[i], p[j]) > res) {
             ans = {p[i], p[j]};
-            res = dist(p[i], p[j]);
+            res = dist2(p[i], p[j]);
         }
-        if (dist(p[i + 1], p[j]) > res) {
+        if (dist2(p[i + 1], p[j]) > res) {
             ans = {p[i + 1], p[j]};
-            res = dist(p[i + 1], p[j]);
+            res = dist2(p[i + 1], p[j]);
         }
     }
     return ans;
+}
+
+// 平面最近点对距离
+template <typename T>
+double closetPair(vector<Point<T>> p) {
+    sort(p.begin(), p.end(), [](auto a, auto b) {
+        return (a.x < b.x || (a.x == b.x && a.y < b.y));
+    });
+    auto dfs = [&](auto self, int l, int r) -> double {
+        if (l == r)
+            return 1E18;
+        if (r == l + 1)
+            return dist(p[l], p[r]);
+        int mid = (l + r) / 2;
+        double d1 = self(self, l, mid);
+        double d2 = self(self, mid + 1, r);
+        double d = min(d1, d2);
+        vector<Point<T>> tmp;
+        for (int i = l; i <= r; i++) {
+            if (fabs(p[mid].x - p[i].x) <= d)
+                tmp.push_back(p[i]);
+        }
+        sort(tmp.begin(), tmp.end(), [](auto a, auto b) {
+            return (a.y < b.y || (a.y == b.y && a.x < b.x));
+        });
+        for (int i = 0; i < tmp.size(); i++) {
+            for (int j = i + 1; j < tmp.size() && tmp[j].y - tmp[i].y < d; j++)
+                d = min(d, dist(tmp[i], tmp[j]));
+        }
+        return d;
+    };
+    return dfs(dfs, 0, (int)p.size() - 1);
 }
 
 template <class T>
