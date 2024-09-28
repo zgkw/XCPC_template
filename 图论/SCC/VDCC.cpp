@@ -1,13 +1,22 @@
-struct CutPoint {
-    int n, cur = 0;
-    vector<int> h, t, to, dfn, low;
+// 小心自环
+struct VDCC {
+    int n, cur = 0, cnt = 0;
+    vector<int> h, t, to, dfn, low, stk;
     vector<bool> cut;
+    vector<vector<int>> sorted;
 
-    CutPoint(int n): n(n), h(n, -1), dfn(n, -1), low(n, -1), cut(n) {};
+    VDCC(int n): n(n), h(n, -1), dfn(n, -1), low(n, -1), cut(n) {};
 
     // 传参时 tarjan(u, u)
     void tarjan(int u, int r) {
         dfn[u] = low[u] = cur ++;
+        if (h[u] == -1) {
+            debug(u);
+            int t = cnt ++;
+            sorted.push_back({u});
+            return;
+        }
+        stk.push_back(u);
         int child = 0;
         for (int i = h[u]; i != -1; i = t[i]) { 
             int v = to[i];
@@ -19,6 +28,17 @@ struct CutPoint {
                     if (u != r || child > 1) {
                         cut[u] = true;
                     }
+                    int t = cnt ++;
+                    sorted.emplace_back();
+                    while (true) {
+                        int x = stk.back();
+                        stk.pop_back();
+                        sorted[t].push_back(x);
+                        if (v == x) {
+                            break;
+                        }
+                    }
+                    sorted[t].push_back(u);
                 }
             } else {
                 low[u] = min(dfn[v], low[u]);

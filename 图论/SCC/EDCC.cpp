@@ -1,14 +1,15 @@
-struct CutEdge {
-    int n, tot = -1;
+struct EDCC {
+    int n, cur = -1, cnt = 0;
     vector<array<int, 2>> e;
     vector<int> h, t;
-    vector<int> dfn, low, ans;
+    vector<int> dfn, low, ans, stk, f;
 
-    CutEdge(int n) :n(n), dfn(n, -1), low(n, -1), h(n, -1) {};
+    EDCC(int n) :n(n), dfn(n, -1), low(n, -1), h(n, -1), f(n, -1) {};
 
     // by 表示从哪条边下来，如果为根，by为一个极大值
     void tarjan(int u, int by = 1E9) {
-        dfn[u] = low[u] = ++tot;
+        dfn[u] = low[u] = ++cur;
+        stk.push_back(u);
         for (int i = h[u]; i != -1; i = t[i]) {
             int v = e[i][1];
             if (dfn[v] == -1) {
@@ -19,6 +20,17 @@ struct CutEdge {
                 }
             } else if (i != (by ^ 1)) {
                 low[u] = min(low[v], low[u]);
+            }
+        }
+        if (dfn[u] == low[u]) {
+            int t = cnt ++;
+            while (true) {
+                int v = stk.back();
+                stk.pop_back();
+                f[v] = t;
+                if (v == u) {
+                    break;
+                }
             }
         }
     }

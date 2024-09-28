@@ -71,7 +71,7 @@ struct linkCutTree {
         }
     }
 
-    void mrk(int x) {
+    void mrt(int x) {
         acc(x);
         splay(x);
         tree[x].mval.reve();
@@ -80,7 +80,7 @@ struct linkCutTree {
 
     //x变为原树的根，y变成辅助树的根
     const Info &split(int x, int y) {
-        mrk(x);
+        mrt(x);
         acc(y);
         splay(y);
         return tree[y].mval;
@@ -96,8 +96,8 @@ struct linkCutTree {
     }
 
     void link(int x, int y) {
-        mrk(x);
-        mrk(y);
+        mrt(x);
+        mrt(y);
         if (find(y) != x) {
             fa(x) = y;
             tree[y].mval.vup(tree[x].mval);
@@ -105,7 +105,7 @@ struct linkCutTree {
     }
 
     void cut(int x, int y) {
-        mrk(x);
+        mrt(x);
         if (find(y) == x
             && fa(y) == x && !lc(y)) {
             rc(x) = fa(y) = 0;
@@ -114,29 +114,30 @@ struct linkCutTree {
     }
 
     void modify(int x, const Info &val) {
-        mrk(x);
+        mrt(x);
         tree[x].mval.modify(val);
         pull(x);
     }
 
     bool same(int x, int y) {
-        mrk(x);
+        mrt(x);
         return find(y) == x;
     }
     node &operator[](int x) {
         return tree[x];
     }
     void dfs(int u) {
-        auto dfs = [&] (auto &&dfs, int u, int fa, int from) -> void {
-            // push(u);
+        auto dfs = [&] (auto &&dfs, int u, int fa, int from, int dep = 0) -> void {
+            push(u);
             for (auto i : {0, 1}) {
                 if (i == 1) {
+                    // cerr << string(dep, '\t');
                     cerr << '(' << fa << " [" << from << ']' << " -> "  << u << ')' << ' ';
                     debug(tree[u].s[0], tree[u].s[1]);
                     tree[u].mval.show();
                 }
                 if (tree[u].s[i]) {
-                    dfs(dfs, tree[u].s[i], u, i);
+                    dfs(dfs, tree[u].s[i], u, i, dep + 1);
                 }
             }
         };
@@ -151,7 +152,10 @@ struct Info {
     void rv(const Info &rhs) {}
     void up(const Info &lhs, const Info &rhs) {}
     void clear() {}
-    void show() {}
+    void show() { 
+# ifdef LOCAL
+# endif
+    }
 };
 
 using Tree = linkCutTree<Info>;
