@@ -3,9 +3,7 @@ struct ScanLine {
     struct Line {
         int x1, x2, y;
         int type;
-        bool operator<(Line another) const {
-            return y < another.y;
-        }
+        bool operator<(Line another) const { return y < another.y; }
     };
 
     struct Info {
@@ -23,7 +21,11 @@ struct ScanLine {
         X.push_back(x2);
     }
 
-    int work(int n) {
+    int work() {
+        if (line.size() == 0) {
+            int res = 0;
+            return res;
+        }
         sort(line.begin(), line.end());
         sort(X.begin(), X.end());
         int tot = unique(X.begin(), X.end()) - X.begin();
@@ -33,7 +35,7 @@ struct ScanLine {
         }
         init(init_);
         int ans = 0;
-        for (int i = 0; i < 2 * n - 1; i++) {
+        for (int i = 0; i < (int)line.size() - 1; i++) {
             modify(1, line[i].x1, line[i].x2, line[i].type);
             ans += info[1].len * (line[i + 1].y - line[i].y);
         }
@@ -42,9 +44,9 @@ struct ScanLine {
 
     ScanLine() : n(0) {};
 
-    void init(const vector<Info> &_init) {
+    void init(const vector<Info>& _init) {
         n = (int)_init.size();
-        info.assign(n * 8, Info());
+        info.assign(n * 25, Info());
         function<void(int, int, int)> build = [&](int p, int l, int r) {
             info[p].l = l;
             info[p].r = r;
