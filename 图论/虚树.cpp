@@ -1,5 +1,5 @@
 auto merge = [&] (int x, int y) {
-    return std::max(x, y);
+    return std::min(x, y);
 };
 struct Tree {
     int n, cur;
