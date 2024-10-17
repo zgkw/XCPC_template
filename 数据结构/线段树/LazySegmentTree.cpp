@@ -137,21 +137,19 @@ struct LazySegmentTree {
     int findLast(int l, int r, F pred) {
         return findLast(1, 0, n, l, r, pred);
     }
-    void show(int p, int l, int r, int x, int y, int dep = 0) {
+    void DFS(int p, int l, int r, int x, int y, int dep = 0) {
         if (l >= y || r <= x) return;
         int m = (l + r) >> 1;
         if (r - l > 1)
-        show(p * 2, l, m, x, y, dep + 1);
-        for (int i = 0; i < dep; i += 1) {
-            cerr << '\t';
-        }
-        cerr << l << ' ' << r << ' '; info[p].show(), tag[p].show();
+        DFS(p * 2, l, m, x, y, dep + 1);
+        cerr << string(dep, '\t');
+        cerr << l << ' ' << r << ' ' << info[p] << tag[p];
         cerr << '\n';
         if (r - l > 1)
-        show(p * 2 + 1, m, r, x, y, dep + 1);
+            DFS(p * 2 + 1, m, r, x, y, dep + 1);
     }
-    void show(int l, int r) {
-        show(1, 0, n, l, r);
+    void dfs(int l, int r) {
+        DFS(1, 0, n, l, r);
     }
 };
 
@@ -160,10 +158,8 @@ struct Tag {
     constexpr operator bool() {
         return true;
     }
-    void show() const {
-# ifdef LOCAL
-        cerr << "tag: " << ";";
-# endif
+    friend ostream &operator<<(ostream &cout, Tag t) {
+        return cout << "tag" << ";";
     }
 };
 
@@ -175,10 +171,8 @@ struct Info {
         info.update(lhs, rhs, l, m, r);
         return info;
     }
-    void show() {
-# ifdef LOCAL
-        cerr << "info: " << "; ";
-# endif
+    friend ostream &operator<<(ostream &cout, Info t) {
+        return cout << "Info" << "; ";
     }
 };
 

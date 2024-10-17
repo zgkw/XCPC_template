@@ -16,7 +16,7 @@ struct SCC {
                 tarjan(v);
                 low[u] = min(low[u], low[v]);
             } else if (in[v]) {
-                low[u] = min(low[u], low[v]);
+                low[u] = min(low[u], dfn[v]);
             }
         }
         if (dfn[u] == low[u]) {

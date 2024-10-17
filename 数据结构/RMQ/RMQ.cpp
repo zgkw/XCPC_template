@@ -1,8 +1,3 @@
-/**
- * author:jiangly 
- * pretreatment:O(n)
- * Inquire:O(1) 
-*/
 template<class T,
     class Cmp = std::less<T>>
 struct RMQ {

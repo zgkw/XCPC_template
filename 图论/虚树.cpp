@@ -1,10 +1,11 @@
-constexpr int maxTop = 3e5;
-int stk[maxTop];
+auto merge = [&] (int x, int y) {
+    return std::max(x, y);
+};
 struct Tree {
     int n, cur;
     vector<vector<int>> adj;
     vector<int> dfn, dep, siz, fa, seq, dnp;
-    SparseTable<int> rmq;
+    SparseTable<int, decltype(::merge)> rmq;
     Tree() = default;
     Tree(int n) {
         init(n);
@@ -17,7 +18,6 @@ struct Tree {
         adj[u].push_back(v);
         adj[v].push_back(u);
     }
-    vector<vector<int>> vTree;
     void work(int root = 0) {
         dfn.assign(n, 0);
         dep.assign(n, 0);
@@ -25,12 +25,9 @@ struct Tree {
         fa.assign(n, 0);
         seq.assign(n, 0);
         dnp.assign(n, 0);
-        vTree.assign(n, {});
         cur = 0;
         dfs(root, root);
-        rmq.init(dnp, [] (int a, int b) {
-            return std::min(a, b);
-        });
+        rmq.init(dnp, ::merge);
     }
     void dfs(int now, int f) {
         dnp[cur] = dfn[f];
@@ -48,6 +45,13 @@ struct Tree {
         if ((lhs = dfn[lhs]) > (rhs = dfn[rhs])) swap(lhs, rhs); 
         return seq[rmq(lhs + 1, rhs + 1)];
     }
+};
+
+constexpr int maxTop = 3e5;
+int stk[maxTop];
+struct virTree : public Tree {
+    virTree(int n) : vTree(n) {}
+    vector<vector<int>> vTree;
     vector<vector<int>> &build_virtual_tree(vector<int> &key) {
         sort(key.begin(), key.end(), [&] (int x, int y) {return dfn[x] < dfn[y];});
         int Top = 0;

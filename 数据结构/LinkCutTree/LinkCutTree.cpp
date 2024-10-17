@@ -1,34 +1,34 @@
 template<class Info>
 struct linkCutTree {
     struct node {
-        int s[2], p, tag;
-        Info mval;
+        int s[2], p, r;
+        Info v;
     };
     int n;
-    vector<node> tree;
+    vector<node> t;
 
-    int &fa(int x) { return tree[x].p; }
-    int &lc(int x) { return tree[x].s[0]; }
-    int &rc(int x) { return tree[x].s[1]; }
+    int &fa(int x) { return t[x].p; }
+    int &lc(int x) { return t[x].s[0]; }
+    int &rc(int x) { return t[x].s[1]; }
     // notroot
     bool pos(int x) {
-        return tree[tree[x].p].s[0] == x || tree[tree[x].p].s[1] == x;
+        return t[t[x].p].s[0] == x || t[t[x].p].s[1] == x;
     }
     // 不能以0开头
-    linkCutTree(int n) : n(n) { tree.resize(n + 1); tree[0].mval.defaultclear(); }
+    linkCutTree(int n) : n(n) { t.resize(n + 1); t[0].v.defaultclear(); }
 
     void pull(int x) {
-        tree[x].mval.up(tree[lc(x)].mval, tree[rc(x)].mval);
+        t[x].v.up(t[lc(x)].v, t[rc(x)].v);
     }
 
     void push(int x) {
-        if (tree[x].tag) {
+        if (t[x].r) {
             swap(lc(x), rc(x));
-            tree[lc(x)].mval.reve();
-            tree[rc(x)].mval.reve();
-            tree[rc(x)].tag ^= 1;
-            tree[lc(x)].tag ^= 1;
-            tree[x].tag = 0;
+            t[lc(x)].v.reve();
+            t[rc(x)].v.reve();
+            t[rc(x)].r ^= 1;
+            t[lc(x)].r ^= 1;
+            t[x].r = 0;
         }
     }
 
@@ -42,11 +42,11 @@ struct linkCutTree {
         int y = fa(x), z = fa(y);
         int k = rc(y) == x;
         if (pos(y))
-            tree[z].s[rc(z) == y] = x;
+            t[z].s[rc(z) == y] = x;
         fa(x) = z;
-        tree[y].s[k] = tree[x].s[k ^ 1];
-        fa(tree[x].s[k ^ 1]) = y;
-        tree[x].s[k ^ 1] = y;
+        t[y].s[k] = t[x].s[k ^ 1];
+        fa(t[x].s[k ^ 1]) = y;
+        t[x].s[k ^ 1] = y;
         fa(y) = x;
         pull(y);
     }
@@ -76,7 +76,7 @@ struct linkCutTree {
     void mrt(int x) {
         acc(x);
         splay(x);
-        tree[x].tag ^= 1;
+        t[x].r ^= 1;
     }
 
     //y变成原树和辅助树的根
@@ -84,14 +84,14 @@ struct linkCutTree {
         mrt(x);
         acc(y);
         splay(y);
-        return tree[y].mval;
+        return t[y].v;
     }
 
     // findroot
     int find(int x) {
         acc(x);
         splay(x);
-        while (lc (x))
+        while (lc(x))
             push(x), x = lc(x);
         splay(x);
         return x;
@@ -113,7 +113,7 @@ struct linkCutTree {
 
     void modify(int x, const Info &val) {
         splay(x);
-        tree[x].mval.modify(val);
+        t[x].v.modify(val);
         pull(x);
     }
 
@@ -122,25 +122,29 @@ struct linkCutTree {
         return find(y) == x;
     }
     node &operator[](int x) {
-        return tree[x];
+        return t[x];
+    }
+    void DFS(int u, int dep = 0) {
+        if (!u) {
+            return;
+        }
+        push(u);
+        for (auto i : {0, 1}) {
+            if (i == 1) {
+                cerr << string(dep, '\t');
+                cerr << u << ' ' << t[u].v << endl;
+            }
+            DFS(t[u].s[i], dep + 1);
+        }
     }
     void dfs(int u) {
-        auto dfs = [&] (auto &&dfs, int u, int fa, int from) -> void {
-            // push(u);
-            for (auto i : {0, 1}) {
-                if (i == 1) {
-                    cerr << '(' << fa << " [" << from << ']' << " -> "  << u << ')' << ' ';
-                    debug(tree[u].s[0], tree[u].s[1]);
-                    tree[u].mval.show();
-                }
-                if (tree[u].s[i]) {
-                    dfs(dfs, tree[u].s[i], u, i);
-                }
-            }
-        };
-        dfs(dfs, u, u, 0);
+# ifndef ONLINE_JUDGE
+        cerr << "\nlct rooted u: " << u << ", P = " << t[u].p << '\n';
+        DFS(u);
+# endif
     }
 };
+
 
 struct Info {
     void reve() {}
@@ -148,6 +152,9 @@ struct Info {
     void up(const Info &lhs, const Info &rhs) {}
     // default
     void clear() {}
+    friend ostream &operator<<(ostream &cout, Info x) {
+        return cout;
+    };
 };
 
 using Tree = linkCutTree<Info>;

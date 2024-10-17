@@ -1,4 +1,4 @@
-template<typename T, class F = function<T(T, T)>>
+template<typename T, class F>
 struct SparseTable {
     int n; 
     constexpr static int B = 24;
