@@ -21,7 +21,7 @@ struct CutPoint {
                     }
                 }
             } else {
-                low[u] = min(dfn[v], low[u]);
+                low[u] = min(low[u], dfn[v]);
             } 
         }
     }

@@ -1,4 +1,3 @@
-// 小心自环
 struct VDCC {
     int n, cur = 0, cnt = 0;
     vector<int> h, t, to, dfn, low, stk;
@@ -30,18 +29,16 @@ struct VDCC {
                     }
                     int t = cnt ++;
                     sorted.emplace_back();
-                    while (true) {
+                    int x;
+                    do {
                         int x = stk.back();
                         stk.pop_back();
                         sorted[t].push_back(x);
-                        if (v == x) {
-                            break;
-                        }
-                    }
+                    } while (x != v);
                     sorted[t].push_back(u);
                 }
             } else {
-                low[u] = min(dfn[v], low[u]);
+                low[u] = min(low[u], dfn[v]);
             } 
         }
     }
