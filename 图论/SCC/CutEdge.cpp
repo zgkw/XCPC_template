@@ -6,19 +6,22 @@ struct CutEdge {
 
     CutEdge(int n) :n(n), dfn(n, -1), low(n, -1), h(n, -1) {};
 
-    // by 表示从哪条边下来，如果为根，by为一个极大值
-    void tarjan(int u, int by = 1E9) {
+    // in 表示从哪条边下来，如果为根，by为一个极大值
+    void tarjan(int u, int in = 1E9) {
         dfn[u] = low[u] = ++tot;
         for (int i = h[u]; i != -1; i = t[i]) {
             int v = e[i][1];
+            if (i == (in ^ 1)) {
+                continue;
+            }
             if (dfn[v] == -1) {
                 tarjan(v, i);
                 low[u] = min(low[u], low[v]);
                 if (low[v] > dfn[u]) {
                     ans.push_back(i);
                 }
-            } else if (i != (by ^ 1)) {
-                low[u] = min(low[v], low[u]);
+            } else {
+                low[u] = min(low[u], dfn[v]);
             }
         }
     }
