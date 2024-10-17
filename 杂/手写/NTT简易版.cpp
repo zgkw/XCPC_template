@@ -80,19 +80,10 @@ void idft(vector<Z> &a) {
 }
 
 struct Poly : public vector<Z> {
-    using Value = Z;
-
-    Poly() : vector<Value>() {}
-    Poly(int n) : vector<Value>(n) {}
-
-    Poly(const vector<Value> &a) : vector<Value>(a) {}
-    Poly(const initializer_list<Value> &a) : vector<Value>(a) {}
-
-    template<class InputIt, class = _RequireInputIter<InputIt>>
-    Poly(InputIt first, InputIt last) : vector<Value>(first, last) {}
+    using vector<Z>::vector;
 
     template<class F>
-    Poly(int n, F f) : vector<Value>(n) {
+    Poly(int n, F f) : vector<Z>(n) {
         for (int i = 0; i < n; i++) {
             (*this)[i] = f(i);
         }
