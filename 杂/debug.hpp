@@ -1,24 +1,31 @@
-template<typename A, typename B> 
-ostream &operator<<(ostream &cout, const pair<A, B> &p) { 
-    return cout << '(' << p.first << ", " << p.second << ')'; 
-}
-template<typename Tp, typename T = typename 
-    enable_if<!is_same<Tp, string>::value, typename Tp::value_type>::type> 
-ostream &operator<<(ostream &cout, const Tp &v) { 
-    cout << '{'; 
-    string sep; 
-    for (const T &x : v) 
-        cout << sep << x, sep = ", "; 
-    return cout << '}'; 
+# include <bits/stdc++.h>
+using namespace std;
+
+template<typename U, typename V> 
+ostream &operator<<(ostream &cout, const pair<U, V> &p) {
+    return cout << "(" << p.first << ", " << p.second << ")";
 }
 
-void Output() { cerr << endl; }
-template<typename Head, typename... Tail> 
-void Output(Head H, Tail... T) {
-    cerr << ' ' << H; Output(T...); 
+template<typename T, typename Tp = typename enable_if<!is_same<T, string>::value, typename T::value_type>::type>
+ostream &operator<<(ostream &cout, const T &u) {
+    string sep;
+    cout << "{";
+    for (const Tp &v : u) {
+        cout << sep << v;
+        sep = ", ";
+    }
+    return cout << "}";
 }
 
-# define ps cerr << "YES" << endl 
-# define debug(...) \
-         cerr << "(" << #__VA_ARGS__ << "):" << endl,\
-         Output(__VA_ARGS__)
+void Output() {
+    cerr << endl;
+}
+
+template<typename H, typename ...T>
+void Output(H h, T ...t) {
+    cerr << h << ' ';
+    Output(t...);
+}
+
+# define debug(...) cerr << "(" << #__VA_ARGS__ << "):\n"; Output(__VA_ARGS__)
+# define ps cerr << "YES" << endl
